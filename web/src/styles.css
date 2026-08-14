@@ -9601,18 +9601,14 @@ kbd {
 }
 
 .yuanse-fact-value.status-complete { color: #34a853; }
-.yuanse-fact-value.status-active { color: #4285f4; }
-.yuanse-fact-value.status-pending { color: #d99000; }
+.yuanse-fact-value.status-active { color: #d99000; }
+.yuanse-fact-value.status-pending { color: var(--text-primary); }
 .yuanse-fact-value.status-paused { color: #d85a5a; }
 
 .yuanse-fact-row.tone-arrangement { --yuanse-fact-color: #f59e0b; --yuanse-fact-soft: rgba(245, 158, 11, 0.12); }
-.yuanse-fact-row.tone-drums { --yuanse-fact-color: #3b82f6; --yuanse-fact-soft: rgba(59, 130, 246, 0.12); }
-.yuanse-fact-row.tone-guitar { --yuanse-fact-color: #ca8a04; --yuanse-fact-soft: rgba(250, 204, 21, 0.14); }
-.yuanse-fact-row.tone-bass { --yuanse-fact-color: #8b5cf6; --yuanse-fact-soft: rgba(139, 92, 246, 0.13); }
-.yuanse-fact-row.tone-special { --yuanse-fact-color: #14b8a6; --yuanse-fact-soft: rgba(20, 184, 166, 0.13); }
-.yuanse-fact-row.tone-vocal { --yuanse-fact-color: #ec4899; --yuanse-fact-soft: rgba(236, 72, 153, 0.12); }
-.yuanse-fact-row.tone-mix { --yuanse-fact-color: #06b6d4; --yuanse-fact-soft: rgba(6, 182, 212, 0.13); }
-.yuanse-fact-row.tone-master { --yuanse-fact-color: #f97316; --yuanse-fact-soft: rgba(249, 115, 22, 0.13); }
+.yuanse-fact-row.tone-instrument { --yuanse-fact-color: #34a853; --yuanse-fact-soft: rgba(52, 168, 83, 0.12); }
+.yuanse-fact-row.tone-vocal { --yuanse-fact-color: #ef4444; --yuanse-fact-soft: rgba(239, 68, 68, 0.12); }
+.yuanse-fact-row.tone-post { --yuanse-fact-color: #3b82f6; --yuanse-fact-soft: rgba(59, 130, 246, 0.12); }
 
 .yuanse-notes-section .issue-description-document,
 .yuanse-empty-notes,

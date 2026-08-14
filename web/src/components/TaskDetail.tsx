@@ -379,7 +379,7 @@ function DescriptionDocument({
 const YUANSE_MANUAL_BLOCK_RE = /<!-- YUANSE-MANUAL START -->\n?([\s\S]*?)\n?<!-- YUANSE-MANUAL END -->/;
 const YUANSE_SYNC_BLOCK_RE = /<!-- YUANSE-SYNC entity=\d+ START -->\n?([\s\S]*?)\n?<!-- YUANSE-SYNC END -->/;
 
-type YuanseFactTone = "neutral" | "arrangement" | "drums" | "guitar" | "bass" | "special" | "vocal" | "mix" | "master";
+type YuanseFactTone = "neutral" | "arrangement" | "instrument" | "vocal" | "post";
 type YuanseStatusTone = "complete" | "active" | "pending" | "paused" | "neutral";
 
 interface YuanseFact {
@@ -412,21 +412,17 @@ function mergeYuanseManualNotes(value: string, manualNotes: string): string {
 
 function yuanseFactTone(label: string): YuanseFactTone {
   if (/编曲/.test(label)) return "arrangement";
-  if (/鼓/.test(label)) return "drums";
-  if (/吉他/.test(label)) return "guitar";
-  if (/贝斯/.test(label)) return "bass";
-  if (/特殊|弦乐|木管|铜管/.test(label)) return "special";
+  if (/鼓|吉他|贝斯|特殊|弦乐|木管|铜管/.test(label)) return "instrument";
   if (/人声|录唱/.test(label)) return "vocal";
-  if (/混音/.test(label)) return "mix";
-  if (/母带/.test(label)) return "master";
+  if (/混音|母带/.test(label)) return "post";
   return "neutral";
 }
 
 function yuanseStatusTone(value: string): YuanseStatusTone {
   if (/暂停|搁置|取消/.test(value)) return "paused";
-  if (/待|未|确认项/.test(value)) return "pending";
   if (/完成|通过|确认|\bOK\b/i.test(value)) return "complete";
   if (/中|进行|录制/.test(value)) return "active";
+  if (/待|未|确认项/.test(value)) return "pending";
   return "neutral";
 }
 

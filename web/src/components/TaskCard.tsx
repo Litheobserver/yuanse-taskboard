@@ -77,6 +77,14 @@ function firstTaskImage(task: Task) {
   return source ? resolvePersistedAttachmentUrl(source) : null;
 }
 
+function productionCardTitle(task: Task) {
+  if (!task.description.includes("<!-- YUANSE-SYNC")) return task.title;
+  const sequence = task.description.match(/曲目序号[：:]\s*(\d+)/)?.[1];
+  if (!sequence) return task.title;
+  const title = task.title.replace(/^\d{1,3}\.\s*/, "");
+  return `${sequence.padStart(2, "0")}.${title}`;
+}
+
 function TaskCardMedia({ src }: { src: string }) {
   const mediaRef = useRef<HTMLDivElement>(null);
   const imageSizeRef = useRef<{ naturalWidth: number; naturalHeight: number } | null>(null);
@@ -364,6 +372,7 @@ export function TaskCard({
 }: TaskCardProps) {
   const { locale, text } = useTaskboardI18n();
   const displayIdentifier = task.externalKey ?? task.identifier;
+  const cardTitle = productionCardTitle(task);
   const [propertyMenu, setPropertyMenu] = useState<"priority" | "labels" | null>(null);
   const [savingProperty, setSavingProperty] = useState<"priority" | "labels" | "dueDate" | "assignee" | null>(null);
   const creator: ActorIdentity = {
@@ -418,7 +427,7 @@ export function TaskCard({
       <button
         className="task-card-open"
         type="button"
-        aria-label={text(`打开 ${displayIdentifier}: ${task.title}`, `Open ${displayIdentifier}: ${task.title}`)}
+        aria-label={text(`打开 ${displayIdentifier}: ${cardTitle}`, `Open ${displayIdentifier}: ${cardTitle}`)}
         onClick={() => onEdit(task)}
       />
 
@@ -456,7 +465,7 @@ export function TaskCard({
         )}
       </div>
 
-      <h3 id={`task-${task.id}-title`}>{task.title}</h3>
+      <h3 id={`task-${task.id}-title`}>{cardTitle}</h3>
 
       {image && (
         <TaskCardMedia key={image} src={image} />
