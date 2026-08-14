@@ -379,6 +379,7 @@ function DescriptionDocument({
 const YUANSE_MANUAL_BLOCK_RE = /<!-- YUANSE-MANUAL START -->\n?([\s\S]*?)\n?<!-- YUANSE-MANUAL END -->/;
 const YUANSE_SYNC_BLOCK_RE = /<!-- YUANSE-SYNC entity=\d+ START -->\n?([\s\S]*?)\n?<!-- YUANSE-SYNC END -->/;
 const YUANSE_COSTS_BLOCK_RE = /<!-- YUANSE-COSTS START -->\n?([\s\S]*?)\n?<!-- YUANSE-COSTS END -->/;
+const YUANSE_FACT_OVERRIDES_BLOCK_RE = /<!-- YUANSE-FACT-OVERRIDES START -->\n?([\s\S]*?)\n?<!-- YUANSE-FACT-OVERRIDES END -->/;
 
 type YuanseFactTone = "neutral" | "arrangement" | "instrument" | "vocal" | "post";
 type YuanseStatusTone = "complete" | "active" | "pending" | "paused" | "neutral";
@@ -440,7 +441,7 @@ function yuanseCosts(value: string): YuanseCostItem[] {
       return [{
         id: typeof candidate.id === "string" && candidate.id ? candidate.id : `cost-${index}`,
         service: candidate.service,
-        supplier: candidate.supplier,
+        supplier: candidate.supplier.replace(/Tony\s+Mora\b/gi, "Tony Morra"),
         total: Number.isFinite(total) ? Math.max(0, total) : 0,
         paid: Number.isFinite(paid) ? Math.max(0, paid) : 0,
         paymentStatus,
@@ -454,6 +455,29 @@ function yuanseCosts(value: string): YuanseCostItem[] {
 function mergeYuanseCosts(value: string, costs: YuanseCostItem[]): string {
   const replacement = `<!-- YUANSE-COSTS START -->\n${JSON.stringify(costs)}\n<!-- YUANSE-COSTS END -->`;
   if (YUANSE_COSTS_BLOCK_RE.test(value)) return value.replace(YUANSE_COSTS_BLOCK_RE, replacement);
+  return `${value.trim()}\n\n${replacement}`.trim();
+}
+
+function yuanseFactOverrides(value: string): Record<string, string> {
+  const raw = value.match(YUANSE_FACT_OVERRIDES_BLOCK_RE)?.[1]?.trim();
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.fromEntries(Object.entries(parsed).flatMap(([label, status]) => (
+      typeof status === "string" && status.trim() ? [[label, status.trim()]] : []
+    )));
+  } catch {
+    return {};
+  }
+}
+
+function mergeYuanseFactOverride(value: string, label: string, status: string): string {
+  const overrides = { ...yuanseFactOverrides(value), [label]: status };
+  const replacement = `<!-- YUANSE-FACT-OVERRIDES START -->\n${JSON.stringify(overrides)}\n<!-- YUANSE-FACT-OVERRIDES END -->`;
+  if (YUANSE_FACT_OVERRIDES_BLOCK_RE.test(value)) {
+    return value.replace(YUANSE_FACT_OVERRIDES_BLOCK_RE, replacement);
+  }
   return `${value.trim()}\n\n${replacement}`.trim();
 }
 
@@ -562,6 +586,16 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
     });
   }
 
+  for (const [label, factValue] of Object.entries(yuanseFactOverrides(value))) {
+    const existing = facts.get(label);
+    facts.set(label, {
+      label,
+      value: factValue,
+      tone: existing?.tone ?? yuanseFactTone(label),
+      statusTone: yuanseStatusTone(factValue),
+    });
+  }
+
   return {
     stage,
     manualNotes: yuanseManualNotes(value),
@@ -576,12 +610,14 @@ function YuanseDescriptionView({
   onOpenTask,
   onEditNotes,
   onSaveCosts,
+  onSaveFact,
 }: {
   value: string;
   tasks: Task[];
   onOpenTask: (task: TaskRelationSummary) => void;
   onEditNotes: () => void;
   onSaveCosts: (costs: YuanseCostItem[]) => Promise<boolean>;
+  onSaveFact: (label: string, status: string) => Promise<boolean>;
 }) {
   const { text } = useTaskboardI18n();
   const summary = parseYuanseDescription(value);
@@ -599,9 +635,21 @@ function YuanseDescriptionView({
             {summary.facts.map((fact) => (
               <div className={`yuanse-fact-row tone-${fact.tone}`} key={fact.label}>
                 <span className="yuanse-fact-label">{fact.label}</span>
-                <strong className={`yuanse-fact-value status-${fact.statusTone}`}>
-                  {fact.statusTone === "complete" && /^已?完成$/.test(fact.value) ? "OK" : fact.value}
-                </strong>
+                <select
+                  className={`yuanse-fact-value yuanse-fact-select status-${fact.statusTone}`}
+                  value={fact.value}
+                  aria-label={`${fact.label}状态`}
+                  onChange={(event) => void onSaveFact(fact.label, event.target.value)}
+                >
+                  {[...new Set([
+                    fact.value,
+                    ...(fact.tone === "arrangement"
+                      ? ["未开始", "编曲中", "修改中", "待确认", "OK"]
+                      : fact.tone === "post"
+                        ? ["未开始", "进行中", "待确认", "OK"]
+                        : ["未录音", "录音中", "待确认", "OK"]),
+                  ])].map((status) => <option key={status} value={status}>{status}</option>)}
+                </select>
               </div>
             ))}
           </div>
@@ -715,7 +763,7 @@ function YuanseCostPanel({
 
         <div className="yuanse-cost-actions">
           <div>
-            <button type="button" onClick={() => addCost("鼓", "Tony Mora")}>+ Tony Mora · 鼓</button>
+            <button type="button" onClick={() => addCost("鼓", "Tony Morra")}>+ Tony Morra · 鼓</button>
             <button type="button" onClick={() => addCost("特殊乐器")}>+ 特殊乐器</button>
             <button type="button" onClick={() => addCost("混音")}>+ 混音</button>
             <button type="button" onClick={() => addCost("母带")}>+ 母带</button>
@@ -1075,6 +1123,25 @@ export function TaskDetail({
     }
   }
 
+  async function saveYuanseFact(label: string, status: string): Promise<boolean> {
+    if (savingProperty === "yuanse-fact") return false;
+    setSavingProperty("yuanse-fact");
+    onError(null);
+    try {
+      const saved = await onUpdate(currentTask, {
+        description: mergeYuanseFactOverride(currentTask.description, label, status),
+      });
+      setCurrentTask(saved);
+      setDescription(saved.description);
+      return true;
+    } catch (error) {
+      onError(issueMessageFor(error));
+      return false;
+    } finally {
+      setSavingProperty(null);
+    }
+  }
+
   async function submitComment() {
     const body = draft.trim();
     if ((!body && pendingCommentFiles.length === 0 && commentInlineImages.length === 0) || submitting) return;
@@ -1388,6 +1455,7 @@ export function TaskDetail({
                               tasks={tasks}
                               onOpenTask={onOpenTask}
                               onSaveCosts={saveYuanseCosts}
+                              onSaveFact={saveYuanseFact}
                               onEditNotes={() => {
                                 setDescriptionSegments(createInlineMediaSegments(yuanseManualNotes(description)));
                                 setEditingDescription(true);
