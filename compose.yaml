@@ -1,0 +1,45 @@
+name: yuanse-taskboard
+
+services:
+  taskboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: yuanse-taskboard:1.0.0
+    restart: unless-stopped
+    environment:
+      CODEX_TASKBOARD_HOST: 0.0.0.0
+      CODEX_TASKBOARD_PORT: 47823
+      CODEX_TASKBOARD_DATA_DIR: /data
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:47823:47823"
+    volumes:
+      - /srv/yuanse/taskboard:/data
+    networks:
+      yuanse:
+        aliases:
+          - taskboard
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:47823/api/projects')
+          .then(response => process.exit(response.ok ? 0 : 1))
+          .catch(() => process.exit(1))
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  yuanse:
+    name: yuanse
