@@ -68,9 +68,34 @@ const taskboardInstanceSecret = (
 process.env.CODEX_TASKBOARD_INSTANCE_SECRET = taskboardInstanceSecret;
 const taskboardVersion = process.env.CODEX_TASKBOARD_VERSION?.trim() || "development";
 process.env.CODEX_TASKBOARD_VERSION = taskboardVersion;
-const taskboardOrigin = `http://127.0.0.1:${resolvePort()}`;
+function resolveEmbeddedTaskboardOrigin(value = process.env.CODEX_TASKBOARD_EMBED_ORIGIN) {
+  if (!value?.trim()) return null;
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("CODEX_TASKBOARD_EMBED_ORIGIN must be a valid loopback HTTP origin");
+  }
+  if (
+    url.protocol !== "http:"
+    || (url.hostname !== "127.0.0.1" && url.hostname !== "localhost")
+    || url.pathname !== "/"
+    || url.search
+    || url.hash
+    || url.username
+    || url.password
+  ) {
+    throw new Error("CODEX_TASKBOARD_EMBED_ORIGIN must be a loopback HTTP origin without a path");
+  }
+  return url.origin;
+}
+
+const embeddedTaskboardOrigin = resolveEmbeddedTaskboardOrigin();
+const taskboardOrigin = embeddedTaskboardOrigin ?? `http://127.0.0.1:${resolvePort()}`;
 const taskboardHealthUrl = `${taskboardOrigin}/health`;
-const taskboardBaseUrl = `${taskboardOrigin}/${encodeURIComponent(taskboardInstanceToken)}`;
+const taskboardBaseUrl = embeddedTaskboardOrigin
+  ? taskboardOrigin
+  : `${taskboardOrigin}/${encodeURIComponent(taskboardInstanceToken)}`;
 const taskboardPageUrl = `${taskboardBaseUrl}/?host=codex`;
 const hostBindingName = "__codexTaskboardHostV1";
 const hostRequestMessage = "__codexTaskboardHostRequestV1";
@@ -166,6 +191,7 @@ async function isReachable(url) {
 }
 
 async function isTaskboardReachable() {
+  if (embeddedTaskboardOrigin) return isReachable(taskboardHealthUrl);
   const challenge = randomBytes(32).toString("hex");
   try {
     const response = await fetch(taskboardHealthUrl, {
@@ -1985,18 +2011,28 @@ async function main() {
     console.log(JSON.stringify({ openTaskboardSignalReady: true }));
   }
   const detached = !options.watch;
-  const supervisor = createTaskboardSupervisor({
-    detached,
-    isReachable: isTaskboardReachable,
-    waitUntilReachable: waitUntilTaskboardReachable,
-    start: () => startTaskboard({ detached }),
-    onProcessError: (error) => {
-      console.error(`Taskboard process error: ${error.message}`);
-    },
-    onUnexpectedExit: (code, signal) => {
-      console.error(`Taskboard exited (${signal || code}); it will be restarted automatically.`);
-    },
-  });
+  const supervisor = embeddedTaskboardOrigin
+    ? {
+        async ensure() {
+          if (!(await isTaskboardReachable())) {
+            throw new Error(`Embedded Taskboard is unavailable at ${taskboardOrigin}`);
+          }
+          return { status: "ok", restarted: false };
+        },
+        async stop() {},
+      }
+    : createTaskboardSupervisor({
+        detached,
+        isReachable: isTaskboardReachable,
+        waitUntilReachable: waitUntilTaskboardReachable,
+        start: () => startTaskboard({ detached }),
+        onProcessError: (error) => {
+          console.error(`Taskboard process error: ${error.message}`);
+        },
+        onUnexpectedExit: (code, signal) => {
+          console.error(`Taskboard exited (${signal || code}); it will be restarted automatically.`);
+        },
+      });
 
   const publishRuntime = async () => {
     const pending = publishTaskboardRuntime();
