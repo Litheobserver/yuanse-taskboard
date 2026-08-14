@@ -9203,19 +9203,19 @@ kbd {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(var(--main-column-count, 3), minmax(300px, 1fr));
+  grid-template-columns: repeat(var(--main-column-count, 3), minmax(240px, 1fr));
   align-items: stretch;
   width: 100%;
   min-width: var(--main-board-min-width, 948px);
   height: 100%;
   min-height: 0;
-  gap: 24px;
+  gap: 12px;
 }
 
 .board-column {
   width: auto;
-  max-width: 400px;
-  min-width: 300px;
+  max-width: 360px;
+  min-width: 240px;
   overflow: visible;
   border: 0;
   border-radius: 0;
@@ -9262,8 +9262,8 @@ kbd {
 .board-column:not(:first-child) .column-header::before {
   position: absolute;
   top: 10px;
-  left: -20px;
-  width: 16px;
+  left: -10px;
+  width: 8px;
   height: 16px;
   background: center / 16px 16px no-repeat url("./assets/figma-taskboard/column-flow-arrow.svg");
   content: "";

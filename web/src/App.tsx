@@ -1874,10 +1874,10 @@ export function App() {
   const mainStatuses = hasBlockedTasks
     ? MAIN_STATUSES
     : MAIN_STATUSES.filter((status) => status !== "blocked");
-  const mainBoardMinWidth = (mainStatuses.length * 300) + ((mainStatuses.length - 1) * 24);
-  const mainBoardMaxWidth = (mainStatuses.length * 400) + ((mainStatuses.length - 1) * 24);
+  const mainBoardMinWidth = (mainStatuses.length * 240) + ((mainStatuses.length - 1) * 12);
+  const mainBoardMaxWidth = (mainStatuses.length * 360) + ((mainStatuses.length - 1) * 12);
   const otherTasksColumnCount = mainStatuses.length + 1;
-  const otherTasksWidth = `clamp(300px, calc(${100 / otherTasksColumnCount}% - ${(36 + (mainStatuses.length * 24)) / otherTasksColumnCount}px), 400px)`;
+  const otherTasksWidth = `clamp(280px, calc(${100 / otherTasksColumnCount}% - ${(24 + (mainStatuses.length * 12)) / otherTasksColumnCount}px), 360px)`;
 
   const taskPresentations = useMemo(() => Object.fromEntries(tasks.map((task) => {
     const unread = (task.status === "in_review" || task.status === "blocked")
@@ -2661,7 +2661,7 @@ export function App() {
 
   const headerProjectName = selectedProject?.id === GLOBAL_PROJECT_ID
     ? text("全局", "Global")
-    : selectedProject?.name ?? text("任务面板", "Taskboard");
+    : selectedProject?.name ?? text("元色制作看板", "Yuanse Production Board");
   const appShellStyle = embedded
     ? { "--codex-titlebar-left-inset": `${hostContext?.titlebarLeftInset ?? 0}px` } as CSSProperties
     : undefined;
@@ -2685,7 +2685,7 @@ export function App() {
         <aside className="app-nav" aria-label={text("任务面板导航", "Taskboard navigation")}>
           <div className="brand-row">
             <span className="brand-mark" aria-hidden="true"><LinearIcon name="project" /></span>
-            <span>{text("任务面板", "Taskboard")}</span>
+            <span>{text("元色制作看板", "Yuanse Production Board")}</span>
           </div>
 
           <nav className="primary-nav" aria-label={text("视图", "Views")}>

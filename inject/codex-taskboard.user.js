@@ -318,10 +318,10 @@
 
   function syncEntryText(button = entry) {
     if (!button) return;
-    button.setAttribute("aria-label", hostText("打开任务面板", "Open Taskboard"));
-    button.setAttribute("title", hostText("任务面板", "Taskboard"));
-    if (entryLabel) entryLabel.textContent = hostText("任务面板", "Taskboard");
-    else button.textContent = hostText("任务面板", "Taskboard");
+    button.setAttribute("aria-label", hostText("打开元色看板", "Open Yuanse Board"));
+    button.setAttribute("title", hostText("元色看板", "Yuanse Board"));
+    if (entryLabel) entryLabel.textContent = hostText("元色看板", "Yuanse Board");
+    else button.textContent = hostText("元色看板", "Yuanse Board");
   }
 
   function syncEntryState() {
