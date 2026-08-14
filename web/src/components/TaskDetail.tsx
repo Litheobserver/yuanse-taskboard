@@ -378,6 +378,7 @@ function DescriptionDocument({
 
 const YUANSE_MANUAL_BLOCK_RE = /<!-- YUANSE-MANUAL START -->\n?([\s\S]*?)\n?<!-- YUANSE-MANUAL END -->/;
 const YUANSE_SYNC_BLOCK_RE = /<!-- YUANSE-SYNC entity=\d+ START -->\n?([\s\S]*?)\n?<!-- YUANSE-SYNC END -->/;
+const YUANSE_COSTS_BLOCK_RE = /<!-- YUANSE-COSTS START -->\n?([\s\S]*?)\n?<!-- YUANSE-COSTS END -->/;
 
 type YuanseFactTone = "neutral" | "arrangement" | "instrument" | "vocal" | "post";
 type YuanseStatusTone = "complete" | "active" | "pending" | "paused" | "neutral";
@@ -396,6 +397,17 @@ interface YuanseDescriptionSummary {
   openItems: string[];
 }
 
+type YuansePaymentStatus = "unpaid" | "partial" | "paid";
+
+interface YuanseCostItem {
+  id: string;
+  service: string;
+  supplier: string;
+  total: number;
+  paid: number;
+  paymentStatus: YuansePaymentStatus;
+}
+
 function isYuanseDescription(value: string): boolean {
   return YUANSE_SYNC_BLOCK_RE.test(value);
 }
@@ -408,6 +420,54 @@ function mergeYuanseManualNotes(value: string, manualNotes: string): string {
   const replacement = `<!-- YUANSE-MANUAL START -->\n${manualNotes.trim()}\n<!-- YUANSE-MANUAL END -->`;
   if (YUANSE_MANUAL_BLOCK_RE.test(value)) return value.replace(YUANSE_MANUAL_BLOCK_RE, replacement);
   return `## 看板备注（可编辑，会回写元色大总管）\n${replacement}\n\n${value}`.trim();
+}
+
+function yuanseCosts(value: string): YuanseCostItem[] {
+  const raw = value.match(YUANSE_COSTS_BLOCK_RE)?.[1]?.trim();
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((item, index) => {
+      if (!item || typeof item !== "object") return [];
+      const candidate = item as Partial<YuanseCostItem>;
+      if (typeof candidate.service !== "string" || typeof candidate.supplier !== "string") return [];
+      const total = Number(candidate.total);
+      const paid = Number(candidate.paid);
+      const paymentStatus = candidate.paymentStatus === "paid" || candidate.paymentStatus === "partial"
+        ? candidate.paymentStatus
+        : "unpaid";
+      return [{
+        id: typeof candidate.id === "string" && candidate.id ? candidate.id : `cost-${index}`,
+        service: candidate.service,
+        supplier: candidate.supplier,
+        total: Number.isFinite(total) ? Math.max(0, total) : 0,
+        paid: Number.isFinite(paid) ? Math.max(0, paid) : 0,
+        paymentStatus,
+      }];
+    });
+  } catch {
+    return [];
+  }
+}
+
+function mergeYuanseCosts(value: string, costs: YuanseCostItem[]): string {
+  const replacement = `<!-- YUANSE-COSTS START -->\n${JSON.stringify(costs)}\n<!-- YUANSE-COSTS END -->`;
+  if (YUANSE_COSTS_BLOCK_RE.test(value)) return value.replace(YUANSE_COSTS_BLOCK_RE, replacement);
+  return `${value.trim()}\n\n${replacement}`.trim();
+}
+
+function createYuanseCostId() {
+  return `cost-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function yuanseMoney(value: number) {
+  return new Intl.NumberFormat("zh-CN", {
+    style: "currency",
+    currency: "CNY",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 function yuanseFactTone(label: string): YuanseFactTone {
@@ -515,11 +575,13 @@ function YuanseDescriptionView({
   tasks,
   onOpenTask,
   onEditNotes,
+  onSaveCosts,
 }: {
   value: string;
   tasks: Task[];
   onOpenTask: (task: TaskRelationSummary) => void;
   onEditNotes: () => void;
+  onSaveCosts: (costs: YuanseCostItem[]) => Promise<boolean>;
 }) {
   const { text } = useTaskboardI18n();
   const summary = parseYuanseDescription(value);
@@ -546,6 +608,8 @@ function YuanseDescriptionView({
         </section>
       )}
 
+      <YuanseCostPanel value={value} onSave={onSaveCosts} />
+
       <section className="yuanse-summary-section yuanse-notes-section">
         <header>
           <h2>{text("看板备注", "Board notes")}</h2>
@@ -565,6 +629,102 @@ function YuanseDescriptionView({
         </section>
       )}
     </div>
+  );
+}
+
+function YuanseCostPanel({
+  value,
+  onSave,
+}: {
+  value: string;
+  onSave: (costs: YuanseCostItem[]) => Promise<boolean>;
+}) {
+  const [costs, setCosts] = useState(() => yuanseCosts(value));
+  const [saving, setSaving] = useState(false);
+  const total = costs.reduce((sum, item) => sum + item.total, 0);
+  const paid = costs.reduce((sum, item) => sum + item.paid, 0);
+  const remaining = Math.max(0, total - paid);
+
+  useEffect(() => setCosts(yuanseCosts(value)), [value]);
+
+  function addCost(service: string, supplier = "") {
+    setCosts((current) => [...current, {
+      id: createYuanseCostId(),
+      service,
+      supplier,
+      total: 0,
+      paid: 0,
+      paymentStatus: "unpaid",
+    }]);
+  }
+
+  function updateCost(id: string, changes: Partial<YuanseCostItem>) {
+    setCosts((current) => current.map((item) => item.id === id ? { ...item, ...changes } : item));
+  }
+
+  async function saveCosts() {
+    setSaving(true);
+    try {
+      await onSave(costs);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <details className="yuanse-cost-panel">
+      <summary>
+        <span>
+          <strong>供应商与成本</strong>
+          <small>{costs.length ? `${costs.length} 项` : "尚未登记"}</small>
+        </span>
+        <span className="yuanse-cost-summary">
+          <b>成本 {yuanseMoney(total)}</b>
+          <em>已付 {yuanseMoney(paid)}</em>
+        </span>
+      </summary>
+
+      <div className="yuanse-cost-panel-body">
+        <div className="yuanse-cost-totals">
+          <span><small>总成本</small><strong>{yuanseMoney(total)}</strong></span>
+          <span><small>已支付</small><strong className="is-paid">{yuanseMoney(paid)}</strong></span>
+          <span><small>待支付</small><strong className="is-pending">{yuanseMoney(remaining)}</strong></span>
+        </div>
+
+        {costs.length > 0 && (
+          <div className="yuanse-cost-list">
+            {costs.map((item) => (
+              <div className="yuanse-cost-row" key={item.id}>
+                <label>项目<input value={item.service} placeholder="如：弦乐 / 风笛" onChange={(event) => updateCost(item.id, { service: event.target.value })} /></label>
+                <label>供应商<input value={item.supplier} placeholder="姓名或工作室" onChange={(event) => updateCost(item.id, { supplier: event.target.value })} /></label>
+                <label>总费用<input type="number" min="0" step="0.01" value={item.total} onChange={(event) => updateCost(item.id, { total: Math.max(0, Number(event.target.value) || 0) })} /></label>
+                <label>已支付<input type="number" min="0" step="0.01" value={item.paid} onChange={(event) => updateCost(item.id, { paid: Math.max(0, Number(event.target.value) || 0) })} /></label>
+                <label>付款状态<select value={item.paymentStatus} onChange={(event) => {
+                  const paymentStatus = event.target.value as YuansePaymentStatus;
+                  updateCost(item.id, {
+                    paymentStatus,
+                    ...(paymentStatus === "unpaid" ? { paid: 0 } : {}),
+                    ...(paymentStatus === "paid" ? { paid: item.total } : {}),
+                  });
+                }}><option value="unpaid">未支付</option><option value="partial">部分支付</option><option value="paid">已付清</option></select></label>
+                <button type="button" className="yuanse-cost-remove" onClick={() => setCosts((current) => current.filter((cost) => cost.id !== item.id))}>删除</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="yuanse-cost-actions">
+          <div>
+            <button type="button" onClick={() => addCost("鼓", "Tony Mora")}>+ Tony Mora · 鼓</button>
+            <button type="button" onClick={() => addCost("特殊乐器")}>+ 特殊乐器</button>
+            <button type="button" onClick={() => addCost("混音")}>+ 混音</button>
+            <button type="button" onClick={() => addCost("母带")}>+ 母带</button>
+            <button type="button" onClick={() => addCost("其他服务")}>+ 其他</button>
+          </div>
+          <button type="button" className="yuanse-cost-save" disabled={saving} onClick={() => void saveCosts()}>{saving ? "保存中…" : "保存成本"}</button>
+        </div>
+      </div>
+    </details>
   );
 }
 
@@ -896,6 +1056,25 @@ export function TaskDetail({
     }
   }
 
+  async function saveYuanseCosts(costs: YuanseCostItem[]): Promise<boolean> {
+    if (savingProperty === "yuanse-costs") return false;
+    setSavingProperty("yuanse-costs");
+    onError(null);
+    try {
+      const saved = await onUpdate(currentTask, {
+        description: mergeYuanseCosts(currentTask.description, costs),
+      });
+      setCurrentTask(saved);
+      setDescription(saved.description);
+      return true;
+    } catch (error) {
+      onError(issueMessageFor(error));
+      return false;
+    } finally {
+      setSavingProperty(null);
+    }
+  }
+
   async function submitComment() {
     const body = draft.trim();
     if ((!body && pendingCommentFiles.length === 0 && commentInlineImages.length === 0) || submitting) return;
@@ -1208,6 +1387,7 @@ export function TaskDetail({
                               value={description}
                               tasks={tasks}
                               onOpenTask={onOpenTask}
+                              onSaveCosts={saveYuanseCosts}
                               onEditNotes={() => {
                                 setDescriptionSegments(createInlineMediaSegments(yuanseManualNotes(description)));
                                 setEditingDescription(true);

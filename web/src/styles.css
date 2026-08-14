@@ -9610,6 +9610,160 @@ kbd {
 .yuanse-fact-row.tone-vocal { --yuanse-fact-color: #ef4444; --yuanse-fact-soft: rgba(239, 68, 68, 0.12); }
 .yuanse-fact-row.tone-post { --yuanse-fact-color: #3b82f6; --yuanse-fact-soft: rgba(59, 130, 246, 0.12); }
 
+.yuanse-cost-panel {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.yuanse-cost-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 76px;
+  padding: 15px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.yuanse-cost-panel > summary::-webkit-details-marker { display: none; }
+
+.yuanse-cost-panel > summary::after {
+  width: 8px;
+  height: 8px;
+  margin-left: 4px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  content: "";
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 160ms ease;
+}
+
+.yuanse-cost-panel[open] > summary {
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-muted) 66%, var(--surface));
+}
+
+.yuanse-cost-panel[open] > summary::after { transform: rotate(225deg) translateY(-2px); }
+
+.yuanse-cost-panel > summary > span:first-child {
+  display: grid;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.yuanse-cost-panel > summary strong {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 720;
+}
+
+.yuanse-cost-panel > summary small,
+.yuanse-cost-totals small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.yuanse-cost-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.yuanse-cost-summary b { color: var(--text-primary); font-size: 14px; }
+.yuanse-cost-summary em { color: #34a853; font-size: 13px; font-style: normal; font-weight: 650; }
+
+.yuanse-cost-panel-body {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.yuanse-cost-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.yuanse-cost-totals > span {
+  display: grid;
+  gap: 5px;
+  padding: 13px 15px;
+}
+
+.yuanse-cost-totals > span + span { border-left: 1px solid var(--border); }
+.yuanse-cost-totals strong { color: var(--text-primary); font-size: 17px; }
+.yuanse-cost-totals .is-paid { color: #34a853; }
+.yuanse-cost-totals .is-pending { color: #d99000; }
+
+.yuanse-cost-list { display: grid; gap: 10px; }
+
+.yuanse-cost-row {
+  display: grid;
+  grid-template-columns: 1.25fr 1.2fr repeat(2, minmax(96px, .8fr)) minmax(108px, .9fr) auto;
+  align-items: end;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-muted);
+}
+
+.yuanse-cost-row label {
+  display: grid;
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.yuanse-cost-row input,
+.yuanse-cost-row select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  outline: none;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+}
+
+.yuanse-cost-row input:focus,
+.yuanse-cost-row select:focus { border-color: var(--accent); }
+
+.yuanse-cost-remove,
+.yuanse-cost-actions button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.yuanse-cost-remove { color: #d85a5a; }
+.yuanse-cost-actions { display: flex; justify-content: space-between; gap: 14px; }
+.yuanse-cost-actions > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.yuanse-cost-actions button:hover { border-color: var(--accent); color: var(--accent); }
+.yuanse-cost-actions .yuanse-cost-save { border-color: var(--accent); background: var(--accent); color: white; }
+.yuanse-cost-actions .yuanse-cost-save:hover { color: white; filter: brightness(1.06); }
+.yuanse-cost-actions .yuanse-cost-save:disabled { cursor: wait; opacity: .66; }
+
 .yuanse-notes-section .issue-description-document,
 .yuanse-empty-notes,
 .yuanse-open-items ul {
@@ -9635,6 +9789,14 @@ kbd {
     grid-template-columns: 1fr;
     gap: 8px;
   }
+
+  .yuanse-cost-panel > summary { align-items: flex-start; }
+  .yuanse-cost-summary { display: grid; gap: 3px; text-align: right; }
+  .yuanse-cost-totals { grid-template-columns: 1fr; }
+  .yuanse-cost-totals > span + span { border-top: 1px solid var(--border); border-left: 0; }
+  .yuanse-cost-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .yuanse-cost-remove { grid-column: span 2; }
+  .yuanse-cost-actions { align-items: flex-start; flex-direction: column; }
 }
 
 .task-card-media {
