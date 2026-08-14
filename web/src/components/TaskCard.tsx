@@ -372,7 +372,7 @@ export function TaskCard({
     name: task.creatorName,
     avatarUrl: task.creatorAvatarUrl,
   };
-  const processingCard = task.status === "in_progress";
+  const processingCard = false;
   const supportsConversation = task.status === "in_progress"
     || task.status === "in_review"
     || task.status === "blocked"
