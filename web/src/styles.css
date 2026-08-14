@@ -6181,6 +6181,34 @@ kbd {
   color: var(--text-tertiary);
 }
 
+.quick-entry-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.quick-entry-label {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.quick-entry-button {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 9px;
+}
+
+.quick-entry-button:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
 .property-row {
   position: relative;
   flex-wrap: wrap;
@@ -9598,6 +9626,21 @@ kbd {
   font-size: 16px;
   font-weight: 620;
   line-height: 25px;
+}
+
+.yuanse-fact-select {
+  width: min(260px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-muted);
+  cursor: pointer;
+  padding: 8px 34px 8px 11px;
+}
+
+.yuanse-fact-select:hover,
+.yuanse-fact-select:focus {
+  border-color: var(--yuanse-fact-color);
+  outline: none;
 }
 
 .yuanse-fact-value.status-complete { color: #34a853; }
