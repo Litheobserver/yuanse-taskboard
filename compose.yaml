@@ -7,19 +7,14 @@ services:
       dockerfile: Dockerfile
     image: yuanse-taskboard:1.0.0
     restart: unless-stopped
+    network_mode: host
     environment:
-      CODEX_TASKBOARD_HOST: 0.0.0.0
+      CODEX_TASKBOARD_HOST: 127.0.0.1
       CODEX_TASKBOARD_PORT: 47823
       CODEX_TASKBOARD_DATA_DIR: /data
       TZ: Asia/Shanghai
-    ports:
-      - "127.0.0.1:47823:47823"
     volumes:
       - /srv/yuanse/taskboard:/data
-    networks:
-      yuanse:
-        aliases:
-          - taskboard
     healthcheck:
       test:
         - CMD
@@ -39,7 +34,3 @@ services:
       options:
         max-size: 10m
         max-file: "3"
-
-networks:
-  yuanse:
-    name: yuanse
