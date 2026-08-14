@@ -9440,9 +9440,205 @@ kbd {
 .task-card h3,
 .app-shell.embedded .task-card h3 {
   color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 24px;
+}
+
+.yuanse-issue-detail .issue-detail-layout {
+  grid-template-columns: minmax(0, 820px) 230px;
+  gap: 48px;
+}
+
+.yuanse-issue-detail .issue-editor {
+  padding-bottom: 0;
+}
+
+.yuanse-issue-detail .issue-sub-issues,
+.yuanse-issue-detail .issue-attachments,
+.yuanse-issue-detail .activity-section,
+.yuanse-issue-detail .issue-conversation-list,
+.yuanse-issue-detail .detail-primary-actions,
+.yuanse-issue-detail .issue-properties > h2,
+.yuanse-issue-detail .issue-properties > .detail-property-row:not(.detail-status-row),
+.yuanse-issue-detail .issue-relation-sidebar,
+.yuanse-issue-detail .detail-timestamps {
+  display: none;
+}
+
+.yuanse-issue-detail .issue-properties::before {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  content: "制作阶段";
   font-size: 13px;
-  font-weight: 500;
-  line-height: 18px;
+  font-weight: 650;
+}
+
+.yuanse-issue-detail .issue-description-read {
+  min-height: 0;
+  padding-top: 14px;
+  cursor: default;
+}
+
+.yuanse-issue-detail .issue-description-read:hover {
+  background: transparent;
+}
+
+.yuanse-production-summary {
+  display: grid;
+  gap: 26px;
+}
+
+.yuanse-stage-card {
+  display: grid;
+  gap: 7px;
+  padding: 20px 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+}
+
+.yuanse-stage-card > span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.yuanse-stage-card > strong {
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 720;
+  line-height: 32px;
+}
+
+.yuanse-summary-section {
+  display: grid;
+  gap: 12px;
+}
+
+.yuanse-summary-section > h2 {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+
+.yuanse-notes-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.yuanse-notes-section > header h2 {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+
+.yuanse-notes-section > header button {
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.yuanse-notes-section > header button:hover {
+  background: var(--accent-soft);
+}
+
+.yuanse-fact-list {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.yuanse-fact-row {
+  --yuanse-fact-color: var(--text-secondary);
+  --yuanse-fact-soft: var(--surface-muted);
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  align-items: center;
+  min-height: 66px;
+  gap: 20px;
+  padding: 13px 18px;
+  border-left: 4px solid var(--yuanse-fact-color);
+}
+
+.yuanse-fact-row + .yuanse-fact-row {
+  border-top: 1px solid var(--border);
+}
+
+.yuanse-fact-label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--yuanse-fact-soft);
+  color: var(--yuanse-fact-color);
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 22px;
+}
+
+.yuanse-fact-value {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 620;
+  line-height: 25px;
+}
+
+.yuanse-fact-value.status-complete { color: #34a853; }
+.yuanse-fact-value.status-active { color: #4285f4; }
+.yuanse-fact-value.status-pending { color: #d99000; }
+.yuanse-fact-value.status-paused { color: #d85a5a; }
+
+.yuanse-fact-row.tone-arrangement { --yuanse-fact-color: #f59e0b; --yuanse-fact-soft: rgba(245, 158, 11, 0.12); }
+.yuanse-fact-row.tone-drums { --yuanse-fact-color: #3b82f6; --yuanse-fact-soft: rgba(59, 130, 246, 0.12); }
+.yuanse-fact-row.tone-guitar { --yuanse-fact-color: #ca8a04; --yuanse-fact-soft: rgba(250, 204, 21, 0.14); }
+.yuanse-fact-row.tone-bass { --yuanse-fact-color: #8b5cf6; --yuanse-fact-soft: rgba(139, 92, 246, 0.13); }
+.yuanse-fact-row.tone-special { --yuanse-fact-color: #14b8a6; --yuanse-fact-soft: rgba(20, 184, 166, 0.13); }
+.yuanse-fact-row.tone-vocal { --yuanse-fact-color: #ec4899; --yuanse-fact-soft: rgba(236, 72, 153, 0.12); }
+.yuanse-fact-row.tone-mix { --yuanse-fact-color: #06b6d4; --yuanse-fact-soft: rgba(6, 182, 212, 0.13); }
+.yuanse-fact-row.tone-master { --yuanse-fact-color: #f97316; --yuanse-fact-soft: rgba(249, 115, 22, 0.13); }
+
+.yuanse-notes-section .issue-description-document,
+.yuanse-empty-notes,
+.yuanse-open-items ul {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.yuanse-empty-notes {
+  color: var(--text-tertiary);
+}
+
+.yuanse-open-items ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 38px;
+}
+
+@media (max-width: 720px) {
+  .yuanse-fact-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 .task-card-media {

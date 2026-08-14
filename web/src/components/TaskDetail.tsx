@@ -376,6 +376,202 @@ function DescriptionDocument({
   );
 }
 
+const YUANSE_MANUAL_BLOCK_RE = /<!-- YUANSE-MANUAL START -->\n?([\s\S]*?)\n?<!-- YUANSE-MANUAL END -->/;
+const YUANSE_SYNC_BLOCK_RE = /<!-- YUANSE-SYNC entity=\d+ START -->\n?([\s\S]*?)\n?<!-- YUANSE-SYNC END -->/;
+
+type YuanseFactTone = "neutral" | "arrangement" | "drums" | "guitar" | "bass" | "special" | "vocal" | "mix" | "master";
+type YuanseStatusTone = "complete" | "active" | "pending" | "paused" | "neutral";
+
+interface YuanseFact {
+  label: string;
+  value: string;
+  tone: YuanseFactTone;
+  statusTone: YuanseStatusTone;
+}
+
+interface YuanseDescriptionSummary {
+  stage: string;
+  manualNotes: string;
+  facts: YuanseFact[];
+  openItems: string[];
+}
+
+function isYuanseDescription(value: string): boolean {
+  return YUANSE_SYNC_BLOCK_RE.test(value);
+}
+
+function yuanseManualNotes(value: string): string {
+  return value.match(YUANSE_MANUAL_BLOCK_RE)?.[1]?.trim() ?? "";
+}
+
+function mergeYuanseManualNotes(value: string, manualNotes: string): string {
+  const replacement = `<!-- YUANSE-MANUAL START -->\n${manualNotes.trim()}\n<!-- YUANSE-MANUAL END -->`;
+  if (YUANSE_MANUAL_BLOCK_RE.test(value)) return value.replace(YUANSE_MANUAL_BLOCK_RE, replacement);
+  return `## 看板备注（可编辑，会回写元色大总管）\n${replacement}\n\n${value}`.trim();
+}
+
+function yuanseFactTone(label: string): YuanseFactTone {
+  if (/编曲/.test(label)) return "arrangement";
+  if (/鼓/.test(label)) return "drums";
+  if (/吉他/.test(label)) return "guitar";
+  if (/贝斯/.test(label)) return "bass";
+  if (/特殊|弦乐|木管|铜管/.test(label)) return "special";
+  if (/人声|录唱/.test(label)) return "vocal";
+  if (/混音/.test(label)) return "mix";
+  if (/母带/.test(label)) return "master";
+  return "neutral";
+}
+
+function yuanseStatusTone(value: string): YuanseStatusTone {
+  if (/暂停|搁置|取消/.test(value)) return "paused";
+  if (/待|未|确认项/.test(value)) return "pending";
+  if (/完成|通过|确认|\bOK\b/i.test(value)) return "complete";
+  if (/中|进行|录制/.test(value)) return "active";
+  return "neutral";
+}
+
+function normalizeYuanseLabel(label: string, value: string): string {
+  const clean = label.trim().replace(/状态$/, "");
+  if (clean === "录鼓") return "鼓";
+  if (clean === "录唱") return "人声";
+  if (clean === "当前") {
+    if (/混音/.test(value)) return "混音";
+    if (/母带/.test(value)) return "母带";
+    if (/录音|录制/.test(value)) return "录音";
+    if (/编曲/.test(value)) return "编曲";
+    return "制作状态";
+  }
+  return clean || "最新进度";
+}
+
+function extractYuanseList(section: string, metadataPattern: RegExp): string[] {
+  return [...section.matchAll(/^-\s+(.+)$/gm)].map((match) => (
+    match[1].replace(metadataPattern, "").trim()
+  )).filter(Boolean);
+}
+
+function parseYuanseDescription(value: string): YuanseDescriptionSummary {
+  const managed = value.match(YUANSE_SYNC_BLOCK_RE)?.[1] ?? "";
+  const stage = managed.match(/\*\*制作阶段\*\*[：:]\s*([^\n]+)/)?.[1]?.trim() || "待补充";
+  const progressSection = managed.match(/\*\*当前进度\*\*([\s\S]*?)(?=\n\*\*开放事项\*\*|$)/)?.[1] ?? "";
+  const openSection = managed.match(/\*\*开放事项\*\*([\s\S]*?)$/)?.[1] ?? "";
+  const updates = extractYuanseList(
+    progressSection,
+    /^\*\*[^*]+\*\*\s*·\s*`UPDATE #\d+`\s*/,
+  );
+  const facts = new Map<string, YuanseFact>();
+
+  for (const update of updates) {
+    for (let token of update.split(/[；;\n]+/)) {
+      token = token.trim().replace(/[。.]$/, "").replace(/^当前进度[：:]\s*/, "");
+      if (!token || token === "待补充") continue;
+      if (/通过后开启|完毕后进入/.test(token)) continue;
+
+      let label = "";
+      let factValue = "";
+      const pair = token.match(/^([^：:]{1,18})[：:]\s*(.+)$/);
+      if (pair) {
+        label = pair[1];
+        factValue = pair[2];
+      } else {
+        const inline = token.match(/^(录鼓|鼓|吉他|贝斯|特殊乐器|人声|录唱)(.+)$/);
+        if (inline) {
+          label = inline[1];
+          factValue = inline[2];
+        } else {
+          label = "最新进度";
+          factValue = token;
+        }
+      }
+
+      const normalizedLabel = normalizeYuanseLabel(label, factValue);
+      facts.set(normalizedLabel, {
+        label: normalizedLabel,
+        value: factValue.trim(),
+        tone: yuanseFactTone(normalizedLabel),
+        statusTone: yuanseStatusTone(factValue),
+      });
+    }
+  }
+
+  const openItems = extractYuanseList(openSection, /^`[^`]+`\s*/)
+    .filter((item) => !/^(暂无|无)[。.]?$/.test(item));
+
+  if (/录音|混音|母带|完成/.test(stage) && facts.has("编曲")) {
+    facts.set("编曲", {
+      label: "编曲",
+      value: "OK",
+      tone: "arrangement",
+      statusTone: "complete",
+    });
+  }
+
+  return {
+    stage,
+    manualNotes: yuanseManualNotes(value),
+    facts: [...facts.values()],
+    openItems,
+  };
+}
+
+function YuanseDescriptionView({
+  value,
+  tasks,
+  onOpenTask,
+  onEditNotes,
+}: {
+  value: string;
+  tasks: Task[];
+  onOpenTask: (task: TaskRelationSummary) => void;
+  onEditNotes: () => void;
+}) {
+  const { text } = useTaskboardI18n();
+  const summary = parseYuanseDescription(value);
+  return (
+    <div className="yuanse-production-summary">
+      <section className="yuanse-stage-card">
+        <span>{text("当前制作阶段", "Current production stage")}</span>
+        <strong>{summary.stage}</strong>
+      </section>
+
+      {summary.facts.length > 0 && (
+        <section className="yuanse-summary-section">
+          <h2>{text("制作进度", "Production progress")}</h2>
+          <div className="yuanse-fact-list">
+            {summary.facts.map((fact) => (
+              <div className={`yuanse-fact-row tone-${fact.tone}`} key={fact.label}>
+                <span className="yuanse-fact-label">{fact.label}</span>
+                <strong className={`yuanse-fact-value status-${fact.statusTone}`}>
+                  {fact.statusTone === "complete" && /^已?完成$/.test(fact.value) ? "OK" : fact.value}
+                </strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="yuanse-summary-section yuanse-notes-section">
+        <header>
+          <h2>{text("看板备注", "Board notes")}</h2>
+          <button type="button" onClick={onEditNotes}>{text("编辑", "Edit")}</button>
+        </header>
+        {summary.manualNotes ? (
+          <DescriptionDocument value={summary.manualNotes} tasks={tasks} onOpenTask={onOpenTask} />
+        ) : (
+          <p className="yuanse-empty-notes">{text("点击这里添加备注", "Click here to add notes")}</p>
+        )}
+      </section>
+
+      {summary.openItems.length > 0 && (
+        <section className="yuanse-summary-section yuanse-open-items">
+          <h2>{text("待处理", "Open items")}</h2>
+          <ul>{summary.openItems.map((item) => <li key={item}>{item}</li>)}</ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
 function ConversationLink({
   threadId,
   onOpen,
@@ -421,11 +617,12 @@ export function TaskDetail({
   onError,
 }: TaskDetailProps) {
   const { language, locale, text } = useTaskboardI18n();
+  const yuanseTask = isYuanseDescription(task.description);
   const [currentTask, setCurrentTask] = useState(task);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
   const [descriptionSegments, setDescriptionSegments] = useState<InlineMediaSegment[]>(
-    () => createInlineMediaSegments(task.description),
+    () => createInlineMediaSegments(yuanseTask ? yuanseManualNotes(task.description) : task.description),
   );
   const [editingDescription, setEditingDescription] = useState(false);
   const [propertyMenu, setPropertyMenu] = useState<"status" | "priority" | "assignee" | "labels" | null>(null);
@@ -476,7 +673,9 @@ export function TaskDetail({
     if (document.activeElement !== titleRef.current) setTitle(task.title);
     if (taskChanged || !editingDescription) {
       setDescription(task.description);
-      setDescriptionSegments(createInlineMediaSegments(task.description));
+      setDescriptionSegments(createInlineMediaSegments(
+        isYuanseDescription(task.description) ? yuanseManualNotes(task.description) : task.description,
+      ));
     }
     if (taskChanged) {
       setEditingDescription(false);
@@ -657,7 +856,10 @@ export function TaskDetail({
     if (savingProperty === "description") return;
     const draftDescription = serializeInlineMedia(descriptionSegments).trim();
     const inlineImages = inlineMediaImages(descriptionSegments);
-    if (draftDescription === currentTask.description && inlineImages.length === 0) {
+    const currentEditableDescription = isYuanseDescription(currentTask.description)
+      ? yuanseManualNotes(currentTask.description)
+      : currentTask.description;
+    if (draftDescription === currentEditableDescription && inlineImages.length === 0) {
       setEditingDescription(false);
       return;
     }
@@ -673,14 +875,19 @@ export function TaskDetail({
         inlineImages,
         uploaded,
       ).trim();
-      const saved = await onUpdate(currentTask, { description: resolvedDescription }).catch((error) => {
+      const savedDescription = isYuanseDescription(currentTask.description)
+        ? mergeYuanseManualNotes(currentTask.description, resolvedDescription)
+        : resolvedDescription;
+      const saved = await onUpdate(currentTask, { description: savedDescription }).catch((error) => {
         onError(issueMessageFor(error));
         return null;
       });
       if (!saved) return;
       setCurrentTask(saved);
       setDescription(saved.description);
-      setDescriptionSegments(createInlineMediaSegments(saved.description));
+      setDescriptionSegments(createInlineMediaSegments(
+        isYuanseDescription(saved.description) ? yuanseManualNotes(saved.description) : saved.description,
+      ));
       setAttachments((current) => [
         ...current,
         ...uploaded.filter((attachment) => !current.some((item) => item.id === attachment.id)),
@@ -912,7 +1119,7 @@ export function TaskDetail({
 
   return (
     <section
-      className="issue-detail"
+      className={`issue-detail${yuanseTask ? " yuanse-issue-detail" : ""}`}
       aria-label={text(`${displayIdentifier} 议题详情`, `${displayIdentifier} issue details`)}
     >
       <div className="issue-detail-scroll">
@@ -934,7 +1141,7 @@ export function TaskDetail({
                   onKeyDown={handleTitleKeyDown}
                   onBlur={() => void saveTitle()}
                 />
-                <IssueParentLink
+                {!yuanseTask && <IssueParentLink
                   task={currentTask}
                   tasks={tasks}
                   onOpenTask={onOpenTask}
@@ -944,7 +1151,7 @@ export function TaskDetail({
                   onRemoveRelation={(anchor, type, relatedTaskId) => applyRelationMutation(
                     () => onRemoveRelation(anchor, type, relatedTaskId),
                   )}
-                />
+                />}
                 {editingDescription ? (
                   <div
                     className="issue-description-composer"
@@ -965,7 +1172,9 @@ export function TaskDetail({
                       onKeyDown={(event) => {
                         if (event.key === "Escape") {
                           event.preventDefault();
-                          setDescriptionSegments(createInlineMediaSegments(currentTask.description));
+                          setDescriptionSegments(createInlineMediaSegments(
+                            yuanseTask ? yuanseManualNotes(currentTask.description) : currentTask.description,
+                          ));
                           setEditingDescription(false);
                         }
                       }}
@@ -974,24 +1183,42 @@ export function TaskDetail({
                 ) : (
                   <div
                     className={`issue-description-read${description ? "" : " empty"}`}
-                    role="button"
-                    tabIndex={0}
+                    role={yuanseTask ? undefined : "button"}
+                    tabIndex={yuanseTask ? undefined : 0}
                     aria-label={text("编辑议题描述", "Edit issue description")}
                     onClick={() => {
+                      if (yuanseTask) return;
                       if (window.getSelection()?.isCollapsed === false) return;
-                      setDescriptionSegments(createInlineMediaSegments(description));
+                      setDescriptionSegments(createInlineMediaSegments(
+                        yuanseTask ? yuanseManualNotes(description) : description,
+                      ));
                       setEditingDescription(true);
                     }}
                     onKeyDown={(event) => {
+                      if (yuanseTask) return;
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        setDescriptionSegments(createInlineMediaSegments(description));
+                        setDescriptionSegments(createInlineMediaSegments(
+                          yuanseTask ? yuanseManualNotes(description) : description,
+                        ));
                         setEditingDescription(true);
                       }
                     }}
                   >
                     {description
-                      ? <DescriptionDocument value={description} tasks={tasks} onOpenTask={onOpenTask} />
+                      ? yuanseTask
+                        ? (
+                            <YuanseDescriptionView
+                              value={description}
+                              tasks={tasks}
+                              onOpenTask={onOpenTask}
+                              onEditNotes={() => {
+                                setDescriptionSegments(createInlineMediaSegments(yuanseManualNotes(description)));
+                                setEditingDescription(true);
+                              }}
+                            />
+                          )
+                        : <DescriptionDocument value={description} tasks={tasks} onOpenTask={onOpenTask} />
                       : text("添加描述…", "Add description…")}
                   </div>
                 )}
@@ -1526,7 +1753,7 @@ export function TaskDetail({
               </button>
             </div>
             <h2>{text("属性", "Properties")}</h2>
-            <div className="detail-property-row">
+            <div className="detail-property-row detail-status-row">
               <span className="detail-property-label">{text("状态", "Status")}</span>
               <TaskPropertyPicker
                 value={currentTask.status}
