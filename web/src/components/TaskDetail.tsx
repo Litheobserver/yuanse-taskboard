@@ -607,6 +607,38 @@ function yuanseNamedSpecialInstruments(value: string): Array<{ label: string; va
   });
 }
 
+function yuanseRecordingStudios(manualNotes: string): string[] {
+  const section = manualNotes.match(/#{1,6}\s*人声录音\s*\n([\s\S]*?)(?=\n#{1,6}\s|$)/)?.[1] ?? "";
+  return [...new Set(section.split("\n").flatMap((line) => {
+    const clean = line.trim().replace(/^[-*]\s*/, "").replace(/[。.]$/, "");
+    if (!clean) return [];
+    const place = clean.includes("｜") ? clean.split("｜").at(-1)!.trim() : "";
+    const studio = place.replace(/^第[^，,]+次[，,]\s*/, "").trim();
+    return studio ? [studio] : [];
+  }))];
+}
+
+function yuanseFactSupplier(value: string, fact: YuanseFact, manualNotes: string): string {
+  const aliases = fact.label === "人声"
+    ? ["人声", "人声录音", "录唱", "录音棚"]
+    : [fact.label];
+  const suppliers = yuanseCosts(value).flatMap((item) => {
+    const service = item.service.trim();
+    if (!aliases.some((alias) => service === alias || service.includes(alias))) return [];
+    const supplier = item.supplier.trim();
+    return supplier ? [supplier] : [];
+  });
+  if (suppliers.length) return [...new Set(suppliers)].join("、");
+
+  if (fact.label === "人声") {
+    const studios = yuanseRecordingStudios(manualNotes);
+    return studios.length ? studios.join("、") : "录音棚待定";
+  }
+  if (fact.label === "鼓") return "Tony Morra";
+  if (/^(吉他|贝斯|钢琴)$/.test(fact.label)) return "我";
+  return "待定";
+}
+
 function orderedYuanseProductionFacts(facts: Map<string, YuanseFact>): YuanseFact[] {
   const leading = ["编曲", "鼓", "吉他", "贝斯"];
   const trailing = ["人声", "混音", "母带"];
@@ -765,26 +797,35 @@ function YuanseDescriptionView({
         <section className="yuanse-summary-section">
           <h2>{text("制作进度", "Production progress")}</h2>
           <div className="yuanse-fact-list">
-            {summary.facts.map((fact) => (
-              <div className={`yuanse-fact-row tone-${fact.tone}`} key={fact.label}>
-                <span className="yuanse-fact-label">{fact.label}</span>
-                <select
-                  className={`yuanse-fact-value yuanse-fact-select status-${fact.statusTone}`}
-                  value={fact.value}
-                  aria-label={`${fact.label}状态`}
-                  onChange={(event) => void onSaveFact(fact.label, event.target.value)}
-                >
-                  {[...new Set([
-                    fact.value,
-                    ...(fact.tone === "arrangement"
-                      ? ["未开始", "编曲中", "修改中", "待确认", "OK"]
-                      : fact.tone === "post"
-                        ? ["未开始", "进行中", "待确认", "OK"]
-                        : ["未录音", "录音中", "待确认", "OK"]),
-                  ])].map((status) => <option key={status} value={status}>{status}</option>)}
-                </select>
-              </div>
-            ))}
+            <div className="yuanse-fact-header" aria-hidden="true">
+              <span>环节</span>
+              <span>供应商 / 执行者</span>
+              <span>状态</span>
+            </div>
+            {summary.facts.map((fact) => {
+              const supplier = yuanseFactSupplier(value, fact, summary.manualNotes);
+              return (
+                <div className={`yuanse-fact-row tone-${fact.tone}`} key={fact.label}>
+                  <span className="yuanse-fact-label">{fact.label}</span>
+                  <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
+                  <select
+                    className={`yuanse-fact-value yuanse-fact-select status-${fact.statusTone}`}
+                    value={fact.value}
+                    aria-label={`${fact.label}状态`}
+                    onChange={(event) => void onSaveFact(fact.label, event.target.value)}
+                  >
+                    {[...new Set([
+                      fact.value,
+                      ...(fact.tone === "arrangement"
+                        ? ["未开始", "编曲中", "修改中", "待确认", "OK"]
+                        : fact.tone === "post"
+                          ? ["未开始", "进行中", "待确认", "OK"]
+                          : ["未录音", "录音中", "待确认", "OK"]),
+                    ])].map((status) => <option key={status} value={status}>{status}</option>)}
+                  </select>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
