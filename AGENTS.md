@@ -11,3 +11,10 @@ For feature work in this repository, use this order:
 The primary objective is to make the requested function work. Focus on the feature implementation itself and avoid over-design; safety, guardrails, and testing must not dominate the work or turn the feature into a surrounding engineering project. This rule supersedes the earlier standing instruction that every feature must be developed test-first. Test-first language in older issues does not apply unless the user restates it for that issue after this rule.
 
 This ordering does not waive higher-priority safety or security requirements. Keep validation that is necessary at real external boundaries, such as user input or external APIs, but do not expand it into hypothetical protection beyond the requested path.
+
+## Yuanse collaboration boundary
+
+- Treat requests made through the Codex entry as organization, information architecture, workflow logic, board interaction, synchronization, deployment, or reporting-capability work. Do not change project content such as a song's concrete status, supplier, amount, date, or note unless the user explicitly asks Codex to make that content change.
+- Project content is normally entered through OpenClaw/“龙虾” or edited directly in the web board. Codex owns the structure that makes those two content-entry paths comfortable and reliable.
+- A structural field is not complete when it is only visible. For every new or changed field, keep one canonical data shape and verify the full contract: 龙虾 can write it → the fact database persists it → the board can display and directly edit it where appropriate → 龙虾 can read it back and use it in summaries or reports.
+- Prefer structured manager commands over free-text parsing for content that drives board fields or reports. If a requested structure has no comfortable 龙虾 write path or no reportable read path, implement that path as part of the same structural change.
