@@ -9344,6 +9344,38 @@ kbd {
 .board-column.status-in_review .column-header { color: #317cff; }
 .board-column.status-blocked .column-header { color: #e5484d; }
 
+.board-column:is(.status-todo, .status-in_progress, .status-in_review, .status-blocked) .column-header {
+  flex-basis: 44px;
+  height: 44px;
+  border: 1px solid rgba(245, 197, 66, .28);
+  background: #070707;
+  color: #f5c542;
+}
+
+.board-column:is(.status-todo, .status-in_progress, .status-in_review, .status-blocked) .column-heading h2 {
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 22px;
+}
+
+.board-column:is(.status-todo, .status-in_progress, .status-in_review, .status-blocked) .column-status-icon {
+  flex-basis: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.board-column:is(.status-todo, .status-in_progress, .status-in_review, .status-blocked) :is(.column-status-icon, .column-actions) .taskboard-icon {
+  width: 18px;
+  height: 18px;
+  max-width: 18px;
+  max-height: 18px;
+  filter: brightness(0) saturate(100%) invert(83%) sepia(78%) saturate(853%) hue-rotate(349deg) brightness(101%) contrast(92%);
+}
+
+.board-column:is(.status-todo, .status-in_progress, .status-in_review, .status-blocked) .column-actions .icon-button:hover {
+  background: rgba(245, 197, 66, .12);
+}
+
 .column-actions {
   color: inherit;
 }
