@@ -635,6 +635,7 @@ function yuanseFactSupplier(value: string, fact: YuanseFact, manualNotes: string
     const studios = yuanseRecordingStudios(manualNotes);
     return studios.length ? studios.join("、") : "录音棚待定";
   }
+  if (fact.label === "编曲") return "我";
   if (fact.label === "鼓") return "Tony Morra";
   if (/^(吉他|贝斯|钢琴)$/.test(fact.label)) return "我";
   return "待定";
