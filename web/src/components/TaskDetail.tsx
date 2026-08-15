@@ -395,8 +395,20 @@ interface YuanseDescriptionSummary {
   stage: string;
   manualNotes: string;
   facts: YuanseFact[];
+  progressNotes: string[];
   openItems: string[];
 }
+
+const YUANSE_PRODUCTION_FACTS: Array<Pick<YuanseFact, "label" | "tone"> & { defaultValue: string }> = [
+  { label: "编曲", tone: "arrangement", defaultValue: "未开始" },
+  { label: "鼓", tone: "instrument", defaultValue: "未录音" },
+  { label: "吉他", tone: "instrument", defaultValue: "未录音" },
+  { label: "贝斯", tone: "instrument", defaultValue: "未录音" },
+  { label: "特殊乐器", tone: "instrument", defaultValue: "未录音" },
+  { label: "人声", tone: "vocal", defaultValue: "未录音" },
+  { label: "混音", tone: "post", defaultValue: "未开始" },
+  { label: "母带", tone: "post", defaultValue: "未开始" },
+];
 
 type YuansePaymentStatus = "unpaid" | "partial" | "paid";
 
@@ -504,24 +516,75 @@ function yuanseFactTone(label: string): YuanseFactTone {
 
 function yuanseStatusTone(value: string): YuanseStatusTone {
   if (/暂停|搁置|取消/.test(value)) return "paused";
-  if (/完成|通过|确认|\bOK\b/i.test(value)) return "complete";
+  if (/已完成|完成|已通过|通过|\bOK\b/i.test(value)) return "complete";
   if (/中|进行|录制/.test(value)) return "active";
   if (/待|未|确认项/.test(value)) return "pending";
   return "neutral";
 }
 
-function normalizeYuanseLabel(label: string, value: string): string {
+function canonicalYuanseFactValue(label: string, value: string): string {
+  const clean = value.trim().replace(/[。.]$/, "");
+  if (/暂停|搁置|取消/.test(clean)) return "暂停";
+  if (/已完成|完成|已通过|通过|\bOK\b/i.test(clean)) return "OK";
+
+  if (label === "编曲") {
+    if (/修改中|编曲修改/.test(clean)) return "修改中";
+    if (/编曲中|进行中/.test(clean)) return "编曲中";
+    if (/待确认|等待.*确认/.test(clean)) return "待确认";
+    return "未开始";
+  }
+
+  if (label === "混音" || label === "母带") {
+    if (/进行中|混音中|母带中|制作中/.test(clean)) return "进行中";
+    if (/待确认|等待.*确认/.test(clean)) return "待确认";
+    return "未开始";
+  }
+
+  if (label === "特殊乐器" && /^(无|可无|没有|无需)$/.test(clean)) return "OK";
+  if (/录音中|录制中|正在.*录|在家录音/.test(clean)) return "录音中";
+  if (/待确认|等待.*确认/.test(clean)) return "待确认";
+  return "未录音";
+}
+
+function isSimpleYuanseFactValue(label: string, value: string): boolean {
+  const clean = value.trim().replace(/[。.]$/, "");
+  if (label === "编曲") {
+    return /^(未开始|待进入|编曲中|修改中|编曲修改中|待确认|等待确认|已完成|完成|已通过|通过|OK|暂停)$/i.test(clean);
+  }
+  if (label === "混音" || label === "母带") {
+    return /^(未开始|待进入|进行中|待确认|等待确认|已完成|完成|OK|暂停)$/i.test(clean);
+  }
+  return /^(未录音|待录音|待进入|录音中|录制中|待确认|等待确认|已完成|完成|已录音|OK|无|可无|暂停)$/i.test(clean);
+}
+
+function yuanseFactProgressNote(label: string, value: string): string | null {
+  if (isSimpleYuanseFactValue(label, value)) return null;
+  let detail = value.trim().replace(/[。.]$/, "");
+  if (label === "编曲") {
+    detail = detail.replace(/^(?:编曲中|编曲修改中|修改中|待确认|等待确认)[，,]\s*/, "");
+    const progress = detail.match(/^进度[：:]?\s*(.+)$/);
+    if (progress) return `编曲进度：${progress[1]}`;
+  }
+  return `${label}：${detail}`;
+}
+
+function normalizeYuanseProductionLabel(label: string, value: string): string | null {
   const clean = label.trim().replace(/状态$/, "");
-  if (clean === "录鼓") return "鼓";
-  if (clean === "录唱") return "人声";
+  if (/^(编曲)$/.test(clean)) return "编曲";
+  if (/^(录鼓|鼓|鼓录音)$/.test(clean)) return "鼓";
+  if (/^(吉他|吉他录音)$/.test(clean)) return "吉他";
+  if (/^(贝斯|贝斯录音)$/.test(clean)) return "贝斯";
+  if (/^(特殊乐器|特殊乐器录音|弦乐|风笛|木管|铜管|钢琴)$/.test(clean)) return "特殊乐器";
+  if (/^(人声|录唱|人声录音)$/.test(clean)) return "人声";
+  if (/^(混音)$/.test(clean)) return "混音";
+  if (/^(母带)$/.test(clean)) return "母带";
   if (clean === "当前") {
     if (/混音/.test(value)) return "混音";
     if (/母带/.test(value)) return "母带";
-    if (/录音|录制/.test(value)) return "录音";
     if (/编曲/.test(value)) return "编曲";
-    return "制作状态";
+    return null;
   }
-  return clean || "最新进度";
+  return null;
 }
 
 function extractYuanseList(section: string, metadataPattern: RegExp): string[] {
@@ -539,7 +602,16 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
     progressSection,
     /^\*\*[^*]+\*\*\s*·\s*`UPDATE #\d+`\s*/,
   );
-  const facts = new Map<string, YuanseFact>();
+  const facts = new Map<string, YuanseFact>(YUANSE_PRODUCTION_FACTS.map((fact) => [
+    fact.label,
+    {
+      label: fact.label,
+      value: fact.defaultValue,
+      tone: fact.tone,
+      statusTone: yuanseStatusTone(fact.defaultValue),
+    },
+  ]));
+  const progressNotes: string[] = [];
 
   for (const update of updates) {
     for (let token of update.split(/[；;\n]+/)) {
@@ -564,12 +636,20 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
         }
       }
 
-      const normalizedLabel = normalizeYuanseLabel(label, factValue);
+      const normalizedLabel = normalizeYuanseProductionLabel(label, factValue);
+      if (!normalizedLabel) {
+        if (/^曲目序号$/.test(label.trim())) continue;
+        progressNotes.push(pair ? `${label.trim()}：${factValue.trim()}` : factValue.trim());
+        continue;
+      }
+      const canonicalValue = canonicalYuanseFactValue(normalizedLabel, factValue);
+      const progressNote = yuanseFactProgressNote(normalizedLabel, factValue);
+      if (progressNote) progressNotes.push(progressNote);
       facts.set(normalizedLabel, {
         label: normalizedLabel,
-        value: factValue.trim(),
+        value: canonicalValue,
         tone: yuanseFactTone(normalizedLabel),
-        statusTone: yuanseStatusTone(factValue),
+        statusTone: yuanseStatusTone(canonicalValue),
       });
     }
   }
@@ -587,11 +667,16 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
   }
 
   for (const [label, factValue] of Object.entries(yuanseFactOverrides(value))) {
-    const existing = facts.get(label);
-    facts.set(label, {
-      label,
+    const normalizedLabel = normalizeYuanseProductionLabel(label, factValue);
+    if (!normalizedLabel) {
+      progressNotes.push(`${label}：${factValue}`);
+      continue;
+    }
+    const existing = facts.get(normalizedLabel);
+    facts.set(normalizedLabel, {
+      label: normalizedLabel,
       value: factValue,
-      tone: existing?.tone ?? yuanseFactTone(label),
+      tone: existing?.tone ?? yuanseFactTone(normalizedLabel),
       statusTone: yuanseStatusTone(factValue),
     });
   }
@@ -600,6 +685,7 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
     stage,
     manualNotes: yuanseManualNotes(value),
     facts: [...facts.values()],
+    progressNotes: [...new Set(progressNotes)].filter(Boolean),
     openItems,
   };
 }
@@ -665,8 +751,13 @@ function YuanseDescriptionView({
         </header>
         {summary.manualNotes ? (
           <DescriptionDocument value={summary.manualNotes} tasks={tasks} onOpenTask={onOpenTask} />
-        ) : (
+        ) : summary.progressNotes.length === 0 ? (
           <p className="yuanse-empty-notes">{text("点击这里添加备注", "Click here to add notes")}</p>
+        ) : null}
+        {summary.progressNotes.length > 0 && (
+          <ul className="yuanse-progress-notes">
+            {summary.progressNotes.map((note) => <li key={note}>{note}</li>)}
+          </ul>
         )}
       </section>
 

@@ -9808,6 +9808,7 @@ kbd {
 .yuanse-cost-actions .yuanse-cost-save:disabled { cursor: wait; opacity: .66; }
 
 .yuanse-notes-section .issue-description-document,
+.yuanse-progress-notes,
 .yuanse-empty-notes,
 .yuanse-open-items ul {
   margin: 0;
@@ -9821,10 +9822,15 @@ kbd {
   color: var(--text-tertiary);
 }
 
+.yuanse-progress-notes,
 .yuanse-open-items ul {
   display: grid;
   gap: 8px;
   padding-left: 38px;
+}
+
+.yuanse-notes-section .issue-description-document + .yuanse-progress-notes {
+  margin-top: 10px;
 }
 
 @media (max-width: 720px) {
