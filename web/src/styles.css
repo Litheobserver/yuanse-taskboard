@@ -9683,9 +9683,9 @@ kbd {
 .yuanse-fact-row.tone-post { --yuanse-fact-color: #3b82f6; --yuanse-fact-soft: rgba(59, 130, 246, 0.12); }
 
 .yuanse-fact-row.owner-self {
-  --yuanse-fact-color: #3b82f6;
-  --yuanse-fact-soft: rgba(59, 130, 246, 0.12);
-  background: rgba(59, 130, 246, 0.035);
+  --yuanse-fact-color: var(--text-primary);
+  --yuanse-fact-soft: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 }
 
 .yuanse-fact-row.owner-external {
