@@ -9683,6 +9683,11 @@ kbd {
 }
 
 .yuanse-fact-value.status-complete { color: #34a853; }
+.yuanse-fact-select.status-complete {
+  padding-left: 34px;
+  text-align: center;
+  text-align-last: center;
+}
 .yuanse-fact-value.status-active { color: #d99000; }
 .yuanse-fact-value.status-pending { color: var(--text-primary); }
 .yuanse-fact-value.status-paused { color: #d85a5a; }
