@@ -9682,6 +9682,31 @@ kbd {
 .yuanse-fact-row.tone-vocal { --yuanse-fact-color: #ef4444; --yuanse-fact-soft: rgba(239, 68, 68, 0.12); }
 .yuanse-fact-row.tone-post { --yuanse-fact-color: #3b82f6; --yuanse-fact-soft: rgba(59, 130, 246, 0.12); }
 
+.yuanse-fact-row.owner-self {
+  --yuanse-fact-color: #3b82f6;
+  --yuanse-fact-soft: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.035);
+}
+
+.yuanse-fact-row.owner-external {
+  --yuanse-fact-color: #f59e0b;
+  --yuanse-fact-soft: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 158, 11, 0.045);
+}
+
+.yuanse-fact-row.owner-self .yuanse-fact-supplier,
+.yuanse-fact-row.owner-self .yuanse-fact-value,
+.yuanse-fact-row.owner-external .yuanse-fact-supplier,
+.yuanse-fact-row.owner-external .yuanse-fact-value {
+  color: var(--yuanse-fact-color);
+}
+
+.yuanse-fact-row.owner-self .yuanse-fact-select,
+.yuanse-fact-row.owner-external .yuanse-fact-select {
+  border-color: color-mix(in srgb, var(--yuanse-fact-color) 32%, var(--border));
+  background: var(--yuanse-fact-soft);
+}
+
 .yuanse-cost-panel {
   overflow: hidden;
   border: 1px solid var(--border);

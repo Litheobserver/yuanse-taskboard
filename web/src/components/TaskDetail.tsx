@@ -639,6 +639,10 @@ function yuanseFactSupplier(value: string, fact: YuanseFact, manualNotes: string
   return "待定";
 }
 
+function yuanseSupplierIsExternal(supplier: string): boolean {
+  return supplier !== "我" && !supplier.includes("待定");
+}
+
 function orderedYuanseProductionFacts(facts: Map<string, YuanseFact>): YuanseFact[] {
   const leading = ["编曲", "鼓", "吉他", "贝斯"];
   const trailing = ["人声", "混音", "母带"];
@@ -804,8 +808,9 @@ function YuanseDescriptionView({
             </div>
             {summary.facts.map((fact) => {
               const supplier = yuanseFactSupplier(value, fact, summary.manualNotes);
+              const ownership = yuanseSupplierIsExternal(supplier) ? "external" : "self";
               return (
-                <div className={`yuanse-fact-row tone-${fact.tone}`} key={fact.label}>
+                <div className={`yuanse-fact-row owner-${ownership}`} key={fact.label}>
                   <span className="yuanse-fact-label">{fact.label}</span>
                   <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
                   <select
