@@ -508,7 +508,7 @@ function yuanseMoney(value: number) {
 
 function yuanseFactTone(label: string): YuanseFactTone {
   if (/编曲/.test(label)) return "arrangement";
-  if (/鼓|吉他|贝斯|特殊|弦乐|木管|铜管/.test(label)) return "instrument";
+  if (/鼓|吉他|贝斯|特殊|弦乐|风笛|木管|铜管|钢琴|小号|三味线/.test(label)) return "instrument";
   if (/人声|录唱/.test(label)) return "vocal";
   if (/混音|母带/.test(label)) return "post";
   return "neutral";
@@ -574,7 +574,10 @@ function normalizeYuanseProductionLabel(label: string, value: string): string | 
   if (/^(录鼓|鼓|鼓录音)$/.test(clean)) return "鼓";
   if (/^(吉他|吉他录音)$/.test(clean)) return "吉他";
   if (/^(贝斯|贝斯录音)$/.test(clean)) return "贝斯";
-  if (/^(特殊乐器|特殊乐器录音|弦乐|风笛|木管|铜管|钢琴)$/.test(clean)) return "特殊乐器";
+  if (/^(特殊乐器|特殊乐器录音)$/.test(clean)) return "特殊乐器";
+  const namedInstrument = clean.match(/^特殊乐器[·/](.+)$/)?.[1]?.trim();
+  if (namedInstrument) return namedInstrument;
+  if (/^(弦乐|风笛|木管|铜管|钢琴|小号|三味线)$/.test(clean)) return clean;
   if (/^(人声|录唱|人声录音)$/.test(clean)) return "人声";
   if (/^(混音)$/.test(clean)) return "混音";
   if (/^(母带)$/.test(clean)) return "母带";
@@ -585,6 +588,35 @@ function normalizeYuanseProductionLabel(label: string, value: string): string | 
     return null;
   }
   return null;
+}
+
+function yuanseNamedSpecialInstruments(value: string): Array<{ label: string; value: string }> {
+  const clean = value.trim().replace(/[。.]$/, "");
+  if (!clean || /^(无|可无|没有|无需|待确认|等待确认|未录音|待录音|待进入)$/.test(clean)) return [];
+
+  const commonStatus = clean.match(/[（(]均\s*([^）)]+)[）)]\s*$/)?.[1]?.trim();
+  const names = clean.replace(/[（(]均\s*[^）)]+[）)]\s*$/, "").split(/[、，,]+/);
+  return names.flatMap((item) => {
+    const part = item.trim();
+    if (!part) return [];
+    const match = part.match(/^(.+?)(?:[（(]([^）)]+)[）)])?$/);
+    const label = match?.[1]?.trim() ?? "";
+    if (!label || /^(无|可无|没有|无需)$/.test(label)) return [];
+    const status = match?.[2]?.trim() || commonStatus || "未录音";
+    return [{ label, value: canonicalYuanseFactValue(label, status) }];
+  });
+}
+
+function orderedYuanseProductionFacts(facts: Map<string, YuanseFact>): YuanseFact[] {
+  const leading = ["编曲", "鼓", "吉他", "贝斯"];
+  const trailing = ["人声", "混音", "母带"];
+  const fixed = new Set([...leading, ...trailing]);
+  const specials = [...facts.values()].filter((fact) => !fixed.has(fact.label));
+  return [
+    ...leading.flatMap((label) => facts.get(label) ? [facts.get(label)!] : []),
+    ...specials,
+    ...trailing.flatMap((label) => facts.get(label) ? [facts.get(label)!] : []),
+  ];
 }
 
 function extractYuanseList(section: string, metadataPattern: RegExp): string[] {
@@ -642,6 +674,23 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
         progressNotes.push(pair ? `${label.trim()}：${factValue.trim()}` : factValue.trim());
         continue;
       }
+      if (normalizedLabel === "特殊乐器") {
+        const namedInstruments = yuanseNamedSpecialInstruments(factValue);
+        if (namedInstruments.length) {
+          facts.delete("特殊乐器");
+          for (const instrument of namedInstruments) {
+            facts.set(instrument.label, {
+              label: instrument.label,
+              value: instrument.value,
+              tone: "instrument",
+              statusTone: yuanseStatusTone(instrument.value),
+            });
+          }
+          continue;
+        }
+      } else if (!YUANSE_PRODUCTION_FACTS.some((fact) => fact.label === normalizedLabel)) {
+        facts.delete("特殊乐器");
+      }
       const canonicalValue = canonicalYuanseFactValue(normalizedLabel, factValue);
       const progressNote = yuanseFactProgressNote(normalizedLabel, factValue);
       if (progressNote) progressNotes.push(progressNote);
@@ -667,11 +716,9 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
   }
 
   for (const [label, factValue] of Object.entries(yuanseFactOverrides(value))) {
-    const normalizedLabel = normalizeYuanseProductionLabel(label, factValue);
-    if (!normalizedLabel) {
-      progressNotes.push(`${label}：${factValue}`);
-      continue;
-    }
+    const normalizedLabel = normalizeYuanseProductionLabel(label, factValue) ?? label.trim();
+    if (!normalizedLabel) continue;
+    if (!YUANSE_PRODUCTION_FACTS.some((fact) => fact.label === normalizedLabel)) facts.delete("特殊乐器");
     const existing = facts.get(normalizedLabel);
     facts.set(normalizedLabel, {
       label: normalizedLabel,
@@ -684,7 +731,7 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
   return {
     stage,
     manualNotes: yuanseManualNotes(value),
-    facts: [...facts.values()],
+    facts: orderedYuanseProductionFacts(facts),
     progressNotes: [...new Set(progressNotes)].filter(Boolean),
     openItems,
   };
