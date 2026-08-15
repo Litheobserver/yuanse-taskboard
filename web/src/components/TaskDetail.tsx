@@ -846,7 +846,7 @@ function YuanseDescriptionView({
         </section>
       )}
 
-      <YuanseCostPanel value={value} onSave={onSaveCosts} />
+      {productionVisible && <YuanseCostPanel value={value} onSave={onSaveCosts} />}
 
       {summary.thoughts.length > 0 && (
         <section className="yuanse-summary-section yuanse-thought-section">
