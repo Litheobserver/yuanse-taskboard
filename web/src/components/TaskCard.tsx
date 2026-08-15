@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { attachmentContentUrl, resolvePersistedAttachmentUrl } from "../api";
 import {
   TASK_PRIORITIES,
@@ -8,7 +8,7 @@ import {
   type TaskDraft,
   type TaskPriority,
 } from "../types";
-import { labelPresentation } from "../labels";
+import { isReleaseLabel, labelPresentation } from "../labels";
 import { taskPriorityLabel, useTaskboardI18n } from "../i18n";
 import { CODEX_AGENT_ACTOR, actorKey, assigneeTargetForActor } from "../actors";
 import type {
@@ -226,9 +226,14 @@ function TaskLabels({ task }: { task: Task }) {
     <>
       {task.labels.slice(0, 2).map((label) => {
         const presentation = labelPresentation(label, language);
+        const release = isReleaseLabel(label);
         return (
-          <span className={`label-chip${presentation.tone ? ` label-chip-${presentation.tone}` : ""}`} key={label}>
-            {presentation.tone && <i aria-hidden="true" />}
+          <span
+            className={`label-chip${presentation.tone ? ` label-chip-${presentation.tone}` : ""}${release ? " label-chip-release" : ""}`}
+            style={release ? { color: presentation.color } : undefined}
+            key={label}
+          >
+            {(presentation.tone || release) && <i aria-hidden="true" />}
             <span>{presentation.name}</span>
           </span>
         );
@@ -373,6 +378,12 @@ export function TaskCard({
   const { locale, text } = useTaskboardI18n();
   const displayIdentifier = task.externalKey ?? task.identifier;
   const cardTitle = productionCardTitle(task);
+  const releaseLabel = task.labels.find(isReleaseLabel);
+  const releaseColor = releaseLabel ? labelPresentation(releaseLabel).color : undefined;
+  const cardStyle: CSSProperties & { "--release-color"?: string } = {
+    ...(dragShift ? { transform: `translate3d(0, ${dragShift}px, 0)` } : {}),
+    ...(releaseColor ? { "--release-color": releaseColor } : {}),
+  };
   const [propertyMenu, setPropertyMenu] = useState<"priority" | "labels" | null>(null);
   const [savingProperty, setSavingProperty] = useState<"priority" | "labels" | "dueDate" | "assignee" | null>(null);
   const creator: ActorIdentity = {
@@ -405,8 +416,8 @@ export function TaskCard({
 
   return (
     <article
-      className={`task-card task-card-${variant} status-${task.status}${processingCard ? " is-processing-card" : ""}${processingCard && presentation.processing.running ? " is-running-card" : ""}${image ? " has-media" : ""}${presentation.unread ? " is-unread" : ""}${isDragging ? " is-dragging" : ""}${dragShift ? " is-drag-shifted" : ""}${isMoving ? " is-moving" : ""}${isSettling ? " is-settling" : ""}${isContextMenuOpen ? " is-context-open" : ""}${propertyMenu ? " is-property-menu-open" : ""}`}
-      style={dragShift ? { transform: `translate3d(0, ${dragShift}px, 0)` } : undefined}
+      className={`task-card task-card-${variant} status-${task.status}${releaseLabel ? " has-release-identity" : ""}${processingCard ? " is-processing-card" : ""}${processingCard && presentation.processing.running ? " is-running-card" : ""}${image ? " has-media" : ""}${presentation.unread ? " is-unread" : ""}${isDragging ? " is-dragging" : ""}${dragShift ? " is-drag-shifted" : ""}${isMoving ? " is-moving" : ""}${isSettling ? " is-settling" : ""}${isContextMenuOpen ? " is-context-open" : ""}${propertyMenu ? " is-property-menu-open" : ""}`}
+      style={cardStyle}
       draggable={!isMoving}
       aria-labelledby={`task-${task.id}-title`}
       data-task-id={task.id}

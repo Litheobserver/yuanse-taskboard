@@ -2037,6 +2037,16 @@ kbd {
   transition: border-color 100ms ease, background-color 100ms ease, box-shadow 100ms ease, opacity 100ms ease, transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.task-card.has-release-identity {
+  border-left: 4px solid var(--release-color);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--release-color) 8%, var(--surface)) 0, var(--surface) 38%);
+}
+
+.task-card.has-release-identity:hover,
+.task-card.has-release-identity.is-context-open {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--release-color) 12%, var(--surface-raised)) 0, var(--surface-raised) 42%);
+}
+
 .task-card:hover {
   z-index: 1;
   border-color: var(--border-strong);
@@ -10074,6 +10084,12 @@ kbd {
 
 .label-chip-feature {
   color: #a979f6;
+}
+
+.label-chip-release {
+  border-color: color-mix(in srgb, currentColor 42%, var(--border));
+  background: color-mix(in srgb, currentColor 10%, var(--surface));
+  font-weight: 650;
 }
 
 .label-chip-bug i,

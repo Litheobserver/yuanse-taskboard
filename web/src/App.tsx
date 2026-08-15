@@ -647,7 +647,10 @@ export function App() {
   >({});
   const [processingNow, setProcessingNow] = useState(() => Date.now());
   const [recentProjectIds, setRecentProjectIds] = useState(readRecentProjectIds);
-  const initialProjectId = query.get("project") ?? recentProjectIds[0] ?? GLOBAL_PROJECT_ID;
+  const canonicalProjectId = (projectId: string) => (
+    projectId === "album-5" || projectId === "album-6" ? "music-production" : projectId
+  );
+  const initialProjectId = canonicalProjectId(query.get("project") ?? recentProjectIds[0] ?? GLOBAL_PROJECT_ID);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -1258,7 +1261,7 @@ export function App() {
   useEffect(() => {
     function syncRouteFromLocation() {
       const url = new URL(window.location.href);
-      const routeProjectId = url.searchParams.get("project") ?? GLOBAL_PROJECT_ID;
+      const routeProjectId = canonicalProjectId(url.searchParams.get("project") ?? GLOBAL_PROJECT_ID);
       const routeIssueIdentifier = readIssueIdentifier(url.search);
       if (routeIssueIdentifier && boardView === "list" && issueListRef.current) {
         pendingDetailSourceScrollRef.current = {
