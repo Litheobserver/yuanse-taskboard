@@ -396,6 +396,7 @@ interface YuanseDescriptionSummary {
   manualNotes: string;
   facts: YuanseFact[];
   progressNotes: string[];
+  thoughts: Array<{ createdAt: string; text: string }>;
   openItems: string[];
 }
 
@@ -664,7 +665,8 @@ function extractYuanseList(section: string, metadataPattern: RegExp): string[] {
 function parseYuanseDescription(value: string): YuanseDescriptionSummary {
   const managed = value.match(YUANSE_SYNC_BLOCK_RE)?.[1] ?? "";
   const stage = managed.match(/\*\*制作阶段\*\*[：:]\s*([^\n]+)/)?.[1]?.trim() || "待补充";
-  const progressSection = managed.match(/\*\*当前进度\*\*([\s\S]*?)(?=\n\*\*开放事项\*\*|$)/)?.[1] ?? "";
+  const progressSection = managed.match(/\*\*当前进度\*\*([\s\S]*?)(?=\n\*\*(?:思考日志|开放事项)\*\*|$)/)?.[1] ?? "";
+  const thoughtSection = managed.match(/\*\*思考日志\*\*([\s\S]*?)(?=\n\*\*开放事项\*\*|$)/)?.[1] ?? "";
   const openSection = managed.match(/\*\*开放事项\*\*([\s\S]*?)$/)?.[1] ?? "";
   const updates = extractYuanseList(
     progressSection,
@@ -741,6 +743,10 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
 
   const openItems = extractYuanseList(openSection, /^`[^`]+`\s*/)
     .filter((item) => !/^(暂无|无)[。.]?$/.test(item));
+  const thoughts = [...thoughtSection.matchAll(/^-\s+`([^`]+)`\s+(.+)$/gm)].map((match) => ({
+    createdAt: match[1].trim(),
+    text: match[2].trim(),
+  }));
 
   if (/录音|混音|母带|完成/.test(stage) && facts.has("编曲")) {
     facts.set("编曲", {
@@ -769,6 +775,7 @@ function parseYuanseDescription(value: string): YuanseDescriptionSummary {
     manualNotes: yuanseManualNotes(value),
     facts: orderedYuanseProductionFacts(facts),
     progressNotes: [...new Set(progressNotes)].filter(Boolean),
+    thoughts,
     openItems,
   };
 }
@@ -790,6 +797,10 @@ function YuanseDescriptionView({
 }) {
   const { text } = useTaskboardI18n();
   const summary = parseYuanseDescription(value);
+  const productionVisible = /^(录音中|混音母带|已完成)$/.test(summary.stage);
+  const visibleFacts = productionVisible
+    ? summary.facts
+    : summary.facts.filter((fact) => fact.label === "编曲");
   return (
     <div className="yuanse-production-summary">
       <section className="yuanse-stage-card">
@@ -797,7 +808,7 @@ function YuanseDescriptionView({
         <strong>{summary.stage}</strong>
       </section>
 
-      {summary.facts.length > 0 && (
+      {visibleFacts.length > 0 && (
         <section className="yuanse-summary-section">
           <h2>{text("制作进度", "Production progress")}</h2>
           <div className="yuanse-fact-list">
@@ -806,7 +817,7 @@ function YuanseDescriptionView({
               <span>供应商 / 执行者</span>
               <span>状态</span>
             </div>
-            {summary.facts.map((fact) => {
+            {visibleFacts.map((fact) => {
               const supplier = yuanseFactSupplier(value, fact, summary.manualNotes);
               const ownership = yuanseSupplierIsExternal(supplier) ? "external" : "self";
               return (
@@ -836,6 +847,20 @@ function YuanseDescriptionView({
       )}
 
       <YuanseCostPanel value={value} onSave={onSaveCosts} />
+
+      {summary.thoughts.length > 0 && (
+        <section className="yuanse-summary-section yuanse-thought-section">
+          <h2>思考日志</h2>
+          <ol>
+            {summary.thoughts.map((thought, index) => (
+              <li key={`${thought.createdAt}-${index}`}>
+                <time>{thought.createdAt}</time>
+                <p>{thought.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       <section className="yuanse-summary-section yuanse-notes-section">
         <header>

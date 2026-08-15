@@ -9714,6 +9714,43 @@ kbd {
   background: var(--surface);
 }
 
+.yuanse-thought-section > ol {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  list-style: none;
+}
+
+.yuanse-thought-section li {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 20px;
+  padding: 15px 18px;
+}
+
+.yuanse-thought-section li + li {
+  border-top: 1px solid var(--border);
+}
+
+.yuanse-thought-section time {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 22px;
+}
+
+.yuanse-thought-section p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 22px;
+}
+
 .yuanse-cost-panel > summary {
   display: flex;
   align-items: center;
