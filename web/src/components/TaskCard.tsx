@@ -51,6 +51,39 @@ function calendarDate(value: string, locale: string) {
     .format(new Date(`${value}T12:00:00`));
 }
 
+type DueDateTone = "future" | "soon" | "today" | "overdue";
+
+function dueDatePresentation(
+  value: string,
+  locale: string,
+  text: (chinese: string, english: string) => string,
+): { label: string; tone: DueDateTone } {
+  const [year, month, day] = value.split("-").map(Number);
+  const dueDay = Date.UTC(year, month - 1, day);
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const daysRemaining = Math.round((dueDay - today) / 86_400_000);
+  const date = calendarDate(value, locale);
+
+  if (daysRemaining < 0) {
+    const daysOverdue = Math.abs(daysRemaining);
+    return {
+      label: text(`${date}，逾期${daysOverdue}天`, `${date}, ${daysOverdue} days overdue`),
+      tone: "overdue",
+    };
+  }
+  if (daysRemaining === 0) {
+    return {
+      label: text(`${date}，今天截止`, `${date}, due today`),
+      tone: "today",
+    };
+  }
+  return {
+    label: text(`${date}，剩余${daysRemaining}天`, `${date}, ${daysRemaining} days left`),
+    tone: daysRemaining <= 7 ? "soon" : "future",
+  };
+}
+
 function createdDate(value: string, locale: string, text: (chinese: string, english: string) => string) {
   const formatted = new Intl.DateTimeFormat(locale, { month: "numeric", day: "numeric" })
     .format(new Date(value));
@@ -299,9 +332,13 @@ function DueDateControl({
   const { locale, text } = useTaskboardI18n();
   const displayIdentifier = task.externalKey ?? task.identifier;
   if (!task.dueDate) return null;
+  const presentation = dueDatePresentation(task.dueDate, locale, text);
   return (
-    <label className="due-date-chip card-property-control" title={text(`截止日期 ${task.dueDate}`, `Due date ${task.dueDate}`)}>
-      <TaskboardIcon name="calendar" /> {calendarDate(task.dueDate, locale)}
+    <label
+      className={`due-date-chip due-date-${presentation.tone} card-property-control`}
+      title={text(`截止日期 ${task.dueDate}`, `Due date ${task.dueDate}`)}
+    >
+      <TaskboardIcon name="calendar" /> {presentation.label}
       <input
         type="date"
         aria-label={text(`${displayIdentifier} 截止日期`, `${displayIdentifier} due date`)}
@@ -508,14 +545,6 @@ export function TaskCard({
               onCreateLabel={onCreateLabel}
             />
           )}
-          <DueDateControl
-            task={task}
-            disabled={propertyDisabled}
-            onChange={(dueDate) => updateProperty({
-              dueDate,
-              ...(dueDate ? {} : { recurrence: null }),
-            }, "dueDate")}
-          />
           {showsInlineParticipants && (
             <AssigneeControl
               task={task}
@@ -532,6 +561,14 @@ export function TaskCard({
               onOpenConversation={onOpenConversation}
             />
           )}
+          <DueDateControl
+            task={task}
+            disabled={propertyDisabled}
+            onChange={(dueDate) => updateProperty({
+              dueDate,
+              ...(dueDate ? {} : { recurrence: null }),
+            }, "dueDate")}
+          />
         </div>
       )}
 

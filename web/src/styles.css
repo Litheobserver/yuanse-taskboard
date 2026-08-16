@@ -10157,6 +10157,33 @@ kbd {
   height: 12px;
 }
 
+.task-card-main .due-date-chip {
+  min-width: max-content;
+  height: 24px;
+  margin-left: auto;
+  padding: 0 9px;
+  border-color: color-mix(in srgb, currentColor 42%, var(--border));
+  background: color-mix(in srgb, currentColor 9%, var(--surface));
+  color: #f1c84b;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 22px;
+}
+
+.task-card-main .due-date-chip svg {
+  color: currentColor;
+}
+
+.task-card-main .due-date-chip.due-date-soon {
+  color: #f0a84b;
+}
+
+.task-card-main .due-date-chip.due-date-today,
+.task-card-main .due-date-chip.due-date-overdue {
+  color: #ff6468;
+}
+
 .label-more {
   flex: 0 0 auto;
   color: var(--text-tertiary);
