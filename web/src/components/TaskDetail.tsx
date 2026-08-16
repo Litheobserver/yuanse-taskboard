@@ -541,7 +541,7 @@ function canonicalYuanseFactValue(label: string, value: string): string {
     return "未开始";
   }
 
-  if (label === "特殊乐器" && /^(无|可无|没有|无需)$/.test(clean)) return "OK";
+  if (label === "特殊乐器" && /^(无|可无|没有|无需|待定|待确认|等待确认)$/.test(clean)) return "未录音";
   if (/录音中|录制中|正在.*录|在家录音/.test(clean)) return "录音中";
   if (/待确认|等待.*确认/.test(clean)) return "待确认";
   return "未录音";
@@ -905,14 +905,19 @@ function YuanseCostPanel({
 
   useEffect(() => setCosts(yuanseCosts(value)), [value]);
 
-  function addCost(service: string, supplier = "") {
+  function addCost(
+    service: string,
+    supplier = "",
+    total = 0,
+    paymentStatus: YuansePaymentStatus = "unpaid",
+  ) {
     setCosts((current) => [...current, {
       id: createYuanseCostId(),
       service,
       supplier,
-      total: 0,
-      paid: 0,
-      paymentStatus: "unpaid",
+      total,
+      paid: paymentStatus === "paid" ? total : 0,
+      paymentStatus,
     }]);
   }
 
@@ -973,7 +978,7 @@ function YuanseCostPanel({
 
         <div className="yuanse-cost-actions">
           <div>
-            <button type="button" onClick={() => addCost("鼓", "Tony Morra")}>+ Tony Morra · 鼓</button>
+            <button type="button" onClick={() => addCost("鼓", "Tony Morra", 1500, "paid")}>+ Tony Morra · 鼓</button>
             <button type="button" onClick={() => addCost("特殊乐器")}>+ 特殊乐器</button>
             <button type="button" onClick={() => addCost("混音")}>+ 混音</button>
             <button type="button" onClick={() => addCost("母带")}>+ 母带</button>
