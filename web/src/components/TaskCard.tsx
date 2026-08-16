@@ -79,7 +79,8 @@ function firstTaskImage(task: Task) {
 
 function productionCardTitle(task: Task) {
   if (!task.description.includes("<!-- YUANSE-SYNC")) return task.title;
-  const sequence = task.description.match(/曲目序号[：:]\s*(\d+)/)?.[1];
+  const sequence = task.description.match(/曲目序号[：:]\s*(\d+)/)?.[1]
+    ?? task.identifier.match(/-(\d+)$/)?.[1];
   if (!sequence) return task.title;
   const title = task.title.replace(/^\d{1,3}\.\s*/, "");
   return `${sequence.padStart(2, "0")}.${title}`;
