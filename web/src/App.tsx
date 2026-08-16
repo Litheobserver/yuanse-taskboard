@@ -60,6 +60,7 @@ import {
 import { BoardColumn } from "./components/BoardColumn";
 import type { AiChatOpenThreadRequest } from "./components/AiChat";
 import { DashboardView } from "./components/DashboardView";
+import { GlobalOverview } from "./components/GlobalOverview";
 import { IssueListView } from "./components/IssueListView";
 import { JiraConnectionDialog } from "./components/JiraConnectionDialog";
 import { OtherTasksPanel } from "./components/OtherTasksPanel";
@@ -1233,6 +1234,17 @@ export function App() {
       task.projectId,
       task.identifier,
     );
+    window.history.pushState(window.history.state, "", detailUrl);
+  }
+
+  function openGlobalTask(task: Task) {
+    closeContextMenu();
+    setProjectMenuOpen(false);
+    setBoardView(readProjectBoardView(task.projectId));
+    setSelectedProjectId(task.projectId);
+    setDetailTaskIdentifier(task.identifier);
+    rememberProjectOpen(task.projectId);
+    const detailUrl = buildIssueUrl(window.location.href, task.projectId, task.identifier);
     window.history.pushState(window.history.state, "", detailUrl);
   }
 
@@ -2697,8 +2709,8 @@ export function App() {
               <span className="nav-glyph" aria-hidden="true">
                 <LinearIcon name="myIssues" />
               </span>
-              {text("议题", "Issues")}
-              <span className="nav-count">{tasks.length}</span>
+              {selectedProjectId === GLOBAL_PROJECT_ID ? text("总览", "Overview") : text("议题", "Issues")}
+              <span className="nav-count">{selectedProjectId === GLOBAL_PROJECT_ID ? Math.max(0, projects.length - 1) : tasks.length}</span>
             </button>
           </nav>
 
@@ -2827,7 +2839,7 @@ export function App() {
           <div ref={dragRegionRef} className="workspace-drag-region" aria-hidden="true" />
 
           <div className="header-actions">
-            {selectedProjectId && (
+            {selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && (
               <ProjectAutomationMenu
                 automation={selectedProjectAutomation}
                 pending={automationPending}
@@ -2849,7 +2861,7 @@ export function App() {
                 <LinearIcon name="recurrence" />
               </button>
             )}
-            {selectedProjectId && !isJiraProject && boardView !== "workflow" && (
+            {selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && !isJiraProject && boardView !== "workflow" && (
               <button
                 className="icon-button header-create-button"
                 type="button"
@@ -2863,7 +2875,7 @@ export function App() {
           </div>
         </header>
 
-        {selectedProjectId && !detailTask && <div className="board-toolbar">
+        {selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && !detailTask && <div className="board-toolbar">
           <div className="view-tabs" aria-label={text("看板视图", "Board views")}>
             <button
               className={`view-tab${boardView === "dashboard" ? " active" : ""}`}
@@ -3032,6 +3044,12 @@ export function App() {
             onCopy={(text, message) => void copyText(text, message)}
             openingThread={openingThreadTaskId === detailTask.id}
             onError={setActionError}
+          />
+        ) : selectedProject?.id === GLOBAL_PROJECT_ID ? (
+          <GlobalOverview
+            projects={projects}
+            onOpenProject={changeProject}
+            onOpenTask={openGlobalTask}
           />
         ) : hasLoadedTasks
           && tasks.length === 0
