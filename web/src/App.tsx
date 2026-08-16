@@ -793,6 +793,7 @@ export function App() {
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
   const isJiraProject = selectedProject?.source === "jira";
+  const isMusicProductionProject = selectedProjectId === "music-production";
   const aiImportProjectId = hasLoadedTasks
     && tasks.length === 0
     && selectedProject
@@ -2360,6 +2361,44 @@ export function App() {
     }
   }
 
+  async function completeAndArchiveSong(task: Task) {
+    setActionError(null);
+    setMovingTaskId(task.id);
+    try {
+      const completedSongs = tasks.filter((candidate) => candidate.status === "done" && candidate.id !== task.id);
+      const sortOrder = completedSongs.length > 0
+        ? Math.max(...completedSongs.map((candidate) => candidate.sortOrder)) + 1024
+        : 1024;
+      const completed = task.status === "done"
+        ? task
+        : await moveTaskRequest(task, "done", sortOrder);
+      const archived = await archiveTaskRequest(completed);
+      setTasks((current) => current.filter((candidate) => candidate.id !== archived.id));
+      setArchivedTasks((current) => sortTasks([
+        ...current.filter((candidate) => candidate.id !== archived.id),
+        archived,
+      ]));
+      pushUndo(text(`${task.identifier} 已移入歌曲归档。`, `${task.identifier} was moved to the song archive.`), async () => {
+        const restored = await restoreTaskRequest(archived);
+        setArchivedTasks((current) => current.filter((candidate) => candidate.id !== restored.id));
+        setTasks((current) => sortTasks([
+          ...current.filter((candidate) => candidate.id !== restored.id),
+          restored,
+        ]));
+      });
+    } catch (error) {
+      setActionError(error instanceof ApiError && error.code === "VERSION_CONFLICT"
+        ? text(
+          "该歌曲已在其他入口更新，看板已重新同步。",
+          "This song changed elsewhere. The board has been synced.",
+        )
+        : errorMessage(error));
+      if (selectedProjectId) void refreshTasks(selectedProjectId, { quiet: true });
+    } finally {
+      setMovingTaskId(null);
+    }
+  }
+
   async function restoreArchivedTask(task: Task) {
     setActionError(null);
     setRestoringTaskId(task.id);
@@ -2980,6 +3019,22 @@ export function App() {
               filters={filters}
               onChange={setFilters}
             />
+            {boardView === "issues" && isMusicProductionProject && (
+              <button
+                className={`archive-songs-trigger${otherTasksOpen && otherTasksTab === "archived" ? " is-open" : ""}`}
+                type="button"
+                aria-controls="other-tasks-panel"
+                aria-expanded={otherTasksOpen && otherTasksTab === "archived"}
+                onClick={() => {
+                  setOtherTasksTab("archived");
+                  setOtherTasksOpen((current) => otherTasksTab === "archived" ? !current : true);
+                }}
+              >
+                <LinearIcon name="folder" />
+                <span>{text("归档歌曲", "Archived songs")}</span>
+                <strong>{archivedTasks.length}</strong>
+              </button>
+            )}
             {boardView === "issues" && (
               <button
                 className={`other-tasks-trigger${otherTasksOpen ? " is-open" : ""}`}
@@ -3178,7 +3233,11 @@ export function App() {
                         onCreate={(initialStatus) => setEditor({ task: null, status: initialStatus })}
                         onEdit={openTaskDetail}
                         onUpdate={updateTaskProperties}
-                        onComplete={(task) => void moveTask(task, "done")}
+                        onComplete={(task) => void (
+                          isMusicProductionProject
+                            ? completeAndArchiveSong(task)
+                            : moveTask(task, "done")
+                        )}
                         onContextMenu={(task, position) => setContextMenu({ taskId: task.id, ...position })}
                         onDragStart={startTaskDrag}
                         onDragEnd={endTaskDrag}
@@ -3223,6 +3282,9 @@ export function App() {
                     onDragEnter={setDropTarget}
                     onDrop={finishTaskDrop}
                     onOpenConversation={openTaskConversation}
+                    archiveLabel={isMusicProductionProject
+                      ? text("归档歌曲", "Archived songs")
+                      : undefined}
                   />
                 )}
               </>

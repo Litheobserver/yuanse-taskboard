@@ -9175,6 +9175,45 @@ kbd {
   box-shadow: none;
 }
 
+.archive-songs-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-width: max-content;
+  height: 30px;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, #ffe100 38%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, #ffe100 7%, var(--surface));
+  color: #ffe100;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.archive-songs-trigger:hover,
+.archive-songs-trigger.is-open {
+  border-color: color-mix(in srgb, #ffe100 68%, var(--border));
+  background: color-mix(in srgb, #ffe100 13%, var(--surface));
+}
+
+.archive-songs-trigger svg {
+  width: 15px;
+  height: 15px;
+}
+
+.archive-songs-trigger strong {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: color-mix(in srgb, #ffe100 16%, transparent);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
 .workspace {
   container: issue-board-workspace / inline-size;
 }
