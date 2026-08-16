@@ -899,8 +899,9 @@ function YuanseCostPanel({
 }) {
   const [costs, setCosts] = useState(() => yuanseCosts(value));
   const [saving, setSaving] = useState(false);
-  const total = costs.reduce((sum, item) => sum + item.total, 0);
-  const paid = costs.reduce((sum, item) => sum + item.paid, 0);
+  const billableCosts = costs.filter((item) => item.supplier.trim() !== "我");
+  const total = billableCosts.reduce((sum, item) => sum + item.total, 0);
+  const paid = billableCosts.reduce((sum, item) => sum + item.paid, 0);
   const remaining = Math.max(0, total - paid);
 
   useEffect(() => setCosts(yuanseCosts(value)), [value]);
@@ -939,7 +940,7 @@ function YuanseCostPanel({
       <summary>
         <span>
           <strong>供应商与成本</strong>
-          <small>{costs.length ? `${costs.length} 项` : "尚未登记"}</small>
+          <small>{billableCosts.length ? `${billableCosts.length} 项` : "尚未登记"}</small>
         </span>
         <span className="yuanse-cost-summary">
           <b>成本 {yuanseMoney(total)}</b>
@@ -954,12 +955,18 @@ function YuanseCostPanel({
           <span><small>待支付</small><strong className="is-pending">{yuanseMoney(remaining)}</strong></span>
         </div>
 
-        {costs.length > 0 && (
+        {billableCosts.length > 0 && (
           <div className="yuanse-cost-list">
-            {costs.map((item) => (
+            {billableCosts.map((item) => (
               <div className="yuanse-cost-row" key={item.id}>
                 <label>项目<input value={item.service} placeholder="如：弦乐 / 风笛" onChange={(event) => updateCost(item.id, { service: event.target.value })} /></label>
-                <label>供应商<input value={item.supplier} placeholder="姓名或工作室" onChange={(event) => updateCost(item.id, { supplier: event.target.value })} /></label>
+                <label>供应商<input value={item.supplier} placeholder="姓名或工作室" onChange={(event) => {
+                  const supplier = event.target.value;
+                  updateCost(item.id, {
+                    supplier,
+                    ...(supplier.trim() === "我" ? { total: 0, paid: 0, paymentStatus: "unpaid" as const } : {}),
+                  });
+                }} /></label>
                 <label>总费用<input type="number" min="0" step="0.01" value={item.total} onChange={(event) => updateCost(item.id, { total: Math.max(0, Number(event.target.value) || 0) })} /></label>
                 <label>已支付<input type="number" min="0" step="0.01" value={item.paid} onChange={(event) => updateCost(item.id, { paid: Math.max(0, Number(event.target.value) || 0) })} /></label>
                 <label>付款状态<select value={item.paymentStatus} onChange={(event) => {
