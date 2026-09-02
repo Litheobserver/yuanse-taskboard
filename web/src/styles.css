@@ -9562,23 +9562,37 @@ kbd {
 }
 
 .yuanse-issue-detail {
-  --yuanse-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E");
-  background-color: color-mix(in srgb, var(--bg) 96%, #29251f);
-  background-image:
-    var(--yuanse-grain),
-    radial-gradient(circle at 22% 0%, color-mix(in srgb, var(--accent) 4%, transparent), transparent 38%);
-  background-blend-mode: soft-light, normal;
-  background-size: 160px 160px, auto;
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 34%),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.7%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.25%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--bg);
 }
 
 .yuanse-issue-detail .issue-detail-main,
 .yuanse-issue-detail .issue-properties {
   border: 1px solid color-mix(in srgb, var(--text-primary) 9%, var(--border));
-  background-color: color-mix(in srgb, var(--surface) 96%, #28241f);
-  background-image: var(--yuanse-grain);
-  background-blend-mode: soft-light;
-  background-size: 190px 190px;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.25%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    color-mix(in srgb, var(--surface) 94%, var(--bg));
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
 }
 
 .yuanse-issue-detail .issue-detail-main {
@@ -9654,9 +9668,19 @@ kbd {
   padding: 22px 24px;
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
   border-radius: 16px;
-  border-left: 4px solid color-mix(in srgb, var(--accent) 72%, var(--text-primary));
-  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
-  box-shadow: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--accent) 3.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    color-mix(in srgb, var(--accent) 8%, var(--surface));
+  box-shadow: inset 0 1px color-mix(in srgb, white 5%, transparent);
 }
 
 .yuanse-stage-card > span {
@@ -9724,8 +9748,19 @@ kbd {
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
   border-radius: 16px;
-  background: var(--surface);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.9%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.35%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.11);
 }
 
 .yuanse-fact-header {
@@ -9767,20 +9802,25 @@ kbd {
   right: 0;
   bottom: 0;
   left: 0;
-  height: 14px;
+  height: 36px;
   background:
-    var(--yuanse-grain),
-    linear-gradient(
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--yuanse-fact-color) 10%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
       90deg,
+      color-mix(in srgb, var(--yuanse-fact-color) 7%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    linear-gradient(
+      180deg,
       transparent 0%,
-      color-mix(in srgb, var(--yuanse-fact-color) 11%, transparent) 18%,
-      color-mix(in srgb, var(--yuanse-fact-color) 18%, transparent) 50%,
-      color-mix(in srgb, var(--yuanse-fact-color) 11%, transparent) 82%,
-      transparent 100%
+      color-mix(in srgb, var(--yuanse-fact-color) 6%, transparent) 24%,
+      color-mix(in srgb, var(--yuanse-fact-color) 18%, transparent) 100%
     );
-  border-bottom: 3px solid color-mix(in srgb, var(--yuanse-fact-color) 58%, transparent);
-  background-blend-mode: soft-light, normal;
-  background-size: 120px 120px, auto;
+  border-bottom: 2px solid color-mix(in srgb, var(--yuanse-fact-color) 48%, transparent);
   box-shadow: none;
   content: "";
   pointer-events: none;
@@ -9860,13 +9900,25 @@ kbd {
 .yuanse-fact-row.owner-self {
   --yuanse-fact-color: var(--text-primary);
   --yuanse-fact-soft: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  background: color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 }
 
 .yuanse-fact-row.owner-external {
   --yuanse-fact-color: #f59e0b;
   --yuanse-fact-soft: rgba(245, 158, 11, 0.12);
-  background: rgba(245, 158, 11, 0.045);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(245, 158, 11, 0.025) 0 1px,
+      transparent 1px 4px
+    ),
+    rgba(245, 158, 11, 0.045);
 }
 
 .yuanse-fact-row.owner-self .yuanse-fact-supplier,
@@ -9886,8 +9938,19 @@ kbd {
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
   border-radius: 16px;
-  background: var(--surface);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
 }
 
 .yuanse-thought-section > ol {
@@ -9898,7 +9961,18 @@ kbd {
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
   border-radius: 16px;
-  background: var(--surface);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
   list-style: none;
 }
 
@@ -10082,7 +10156,18 @@ kbd {
   padding: 16px 18px;
   border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
   border-radius: 16px;
-  background: var(--surface);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
 }
 
 .yuanse-empty-notes {
