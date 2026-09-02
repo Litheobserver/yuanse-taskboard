@@ -10239,6 +10239,659 @@ kbd {
   .yuanse-cost-actions { align-items: flex-start; flex-direction: column; }
 }
 
+/* Yuanse song detail: B / album liner notes */
+.yuanse-issue-detail {
+  --liner-canvas: #121315;
+  --liner-paper: #ddd5c8;
+  --liner-paper-deep: #cfc5b5;
+  --liner-paper-light: #e8e1d7;
+  --liner-ink: #211e1a;
+  --liner-ink-soft: #6c655b;
+  --liner-rule: rgba(33, 30, 26, 0.28);
+  --liner-rule-soft: rgba(33, 30, 26, 0.13);
+  --liner-green: #2f6f55;
+  --liner-amber: #a45c21;
+  --liner-red: #97463f;
+  background:
+    radial-gradient(circle at 52% -20%, rgba(255, 255, 255, 0.06), transparent 36%),
+    var(--liner-canvas);
+}
+
+.yuanse-issue-detail .issue-detail-layout {
+  width: min(1280px, 100%);
+  padding: 44px 34px 90px;
+}
+
+.yuanse-issue-detail .issue-detail-main {
+  overflow: hidden;
+  border: 1px solid #585249;
+  border-radius: 2px 16px 16px 2px;
+  background:
+    linear-gradient(90deg, rgba(35, 31, 25, 0.09), transparent 18px),
+    repeating-linear-gradient(0deg, rgba(87, 72, 50, 0.018) 0 1px, transparent 1px 4px),
+    var(--liner-paper);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.36);
+}
+
+.yuanse-issue-detail .issue-detail-main::before {
+  width: 15px;
+  border-right: 1px solid rgba(39, 34, 28, 0.32);
+  background:
+    radial-gradient(circle at 50% 82px, #b98b50 0 2px, #554839 3px 4px, transparent 5px),
+    radial-gradient(circle at 50% calc(100% - 82px), #b98b50 0 2px, #554839 3px 4px, transparent 5px),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 8px),
+    #4a4339;
+  box-shadow: inset -3px 0 7px rgba(0, 0, 0, 0.2);
+}
+
+.yuanse-issue-detail .issue-editor-content {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  column-gap: 28px;
+  padding: 50px 54px 62px 62px;
+}
+
+.yuanse-liner-number {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: start;
+  color: var(--liner-ink);
+  font-family: "Iowan Old Style", "Baskerville", "Songti SC", serif;
+  font-size: 78px;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 0.84;
+}
+
+.yuanse-track-kicker {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 238px);
+  margin: 1px 0 9px;
+  color: var(--liner-ink-soft);
+  font-family: "DIN Alternate", "SFMono-Regular", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.yuanse-track-kicker > span:first-child {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--liner-ink);
+  letter-spacing: 0.06em;
+}
+
+.yuanse-track-kicker > span + span::before {
+  margin-right: 10px;
+  color: var(--liner-ink-soft);
+  content: "·";
+}
+
+.yuanse-issue-detail .issue-title-input {
+  grid-column: 2;
+  grid-row: 2;
+  width: calc(100% - 238px);
+  min-height: 62px;
+  margin: 0;
+  padding: 0 0 24px;
+  border-bottom: 2px solid var(--liner-ink);
+  color: var(--liner-ink);
+  font-family: "Songti SC", "STSong", "Iowan Old Style", serif;
+  font-size: clamp(42px, 4.8vw, 58px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.yuanse-issue-detail .issue-title-input:focus {
+  background: rgba(255, 255, 255, 0.12);
+  outline: 0;
+}
+
+.yuanse-issue-detail .issue-description-read,
+.yuanse-issue-detail .issue-description-composer {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.yuanse-issue-detail .issue-description-read {
+  padding: 36px 0 0;
+  color: var(--liner-ink);
+}
+
+.yuanse-issue-detail .issue-properties {
+  top: 82px;
+  right: 88px;
+  width: 196px;
+  padding: 8px 0 12px 20px;
+  border: 0;
+  border-left: 1px solid var(--liner-rule);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.yuanse-issue-detail .issue-properties::before {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  color: var(--liner-ink-soft);
+  content: "当前制作阶段";
+  font-family: "DIN Alternate", "SFMono-Regular", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+.yuanse-issue-detail .detail-status-row {
+  display: block;
+}
+
+.yuanse-issue-detail .detail-status-row button,
+.yuanse-issue-detail .detail-status-row [role="button"] {
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--liner-ink);
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.yuanse-production-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: start;
+  gap: 42px 38px;
+}
+
+.yuanse-progress-section {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.yuanse-cost-panel {
+  grid-column: 2;
+  grid-row: 1;
+  overflow: hidden;
+  border: 0;
+  border-left: 1px solid var(--liner-rule);
+  border-radius: 0;
+  background: var(--liner-paper-deep);
+  color: var(--liner-ink);
+}
+
+.yuanse-thought-section,
+.yuanse-notes-section,
+.yuanse-open-items {
+  grid-column: 1 / -1;
+}
+
+.yuanse-summary-section {
+  gap: 13px;
+}
+
+.yuanse-summary-section > h2,
+.yuanse-notes-section > header h2 {
+  color: var(--liner-ink-soft);
+  font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.yuanse-notes-section > header button {
+  border-radius: 2px;
+  color: var(--liner-amber);
+  font-weight: 700;
+}
+
+.yuanse-notes-section > header button:hover {
+  background: rgba(164, 92, 33, 0.1);
+}
+
+.yuanse-fact-list {
+  display: grid;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.yuanse-fact-header,
+.yuanse-fact-row {
+  grid-template-columns: 126px minmax(150px, 1fr) minmax(110px, 142px);
+  gap: 18px;
+}
+
+.yuanse-fact-header {
+  padding: 8px 4px 9px;
+  border-top: 1px solid var(--liner-ink);
+  border-bottom: 1px solid var(--liner-rule);
+  background: transparent;
+  color: var(--liner-ink-soft);
+  font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
+  font-size: 9px;
+  letter-spacing: 0.11em;
+}
+
+.yuanse-phase-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 13px;
+  margin-top: 26px;
+  padding: 9px 4px 8px;
+  border-top: 2px solid var(--liner-ink);
+  border-bottom: 1px solid var(--liner-rule);
+  color: var(--liner-ink);
+}
+
+.yuanse-fact-header + .yuanse-phase-row {
+  margin-top: 0;
+  border-top: 0;
+}
+
+.yuanse-phase-number {
+  color: var(--liner-ink-soft);
+  font-family: "Iowan Old Style", "Baskerville", serif;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.yuanse-phase-row strong {
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.yuanse-phase-status {
+  color: var(--liner-ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.yuanse-phase-status.is-完成 { color: var(--liner-green); }
+.yuanse-phase-status.is-进行中 { color: var(--liner-amber); }
+
+.yuanse-fact-row {
+  --yuanse-fact-color: var(--liner-ink);
+  display: grid;
+  overflow: visible;
+  min-height: 49px;
+  padding: 8px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--liner-rule-soft);
+  background: transparent;
+  color: var(--liner-ink);
+}
+
+.yuanse-fact-row + .yuanse-fact-row {
+  border-top: 0;
+}
+
+.yuanse-fact-row.is-complete::after {
+  display: none;
+}
+
+.yuanse-fact-label {
+  min-height: 0;
+  padding: 0;
+  color: var(--yuanse-fact-color);
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.yuanse-fact-supplier {
+  color: var(--yuanse-fact-color);
+  font-size: 14px;
+  font-weight: 560;
+  line-height: 24px;
+}
+
+.yuanse-fact-supplier.is-pending {
+  color: var(--liner-ink-soft);
+}
+
+.yuanse-fact-select,
+.yuanse-fact-row.owner-self .yuanse-fact-select,
+.yuanse-fact-row.owner-external .yuanse-fact-select {
+  width: 100%;
+  min-height: 32px;
+  padding: 3px 24px 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--liner-ink);
+  font-family: "DIN Alternate", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  text-align-last: right;
+}
+
+.yuanse-fact-select:hover,
+.yuanse-fact-select:focus,
+.yuanse-fact-row.owner-self .yuanse-fact-select:hover,
+.yuanse-fact-row.owner-external .yuanse-fact-select:hover {
+  border-color: var(--liner-rule);
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.yuanse-fact-select.status-complete {
+  padding-left: 24px;
+  color: var(--liner-green);
+  text-align: center;
+  text-align-last: center;
+}
+
+.yuanse-fact-row.owner-self .yuanse-fact-select.status-complete,
+.yuanse-fact-row.owner-external .yuanse-fact-select.status-complete {
+  color: var(--liner-green);
+}
+
+.yuanse-fact-select.status-active,
+.yuanse-fact-row.owner-self .yuanse-fact-select.status-active,
+.yuanse-fact-row.owner-external .yuanse-fact-select.status-active { color: var(--liner-amber); }
+.yuanse-fact-select.status-pending,
+.yuanse-fact-row.owner-self .yuanse-fact-select.status-pending { color: var(--liner-ink-soft); }
+.yuanse-fact-select.status-paused,
+.yuanse-fact-row.owner-self .yuanse-fact-select.status-paused,
+.yuanse-fact-row.owner-external .yuanse-fact-select.status-paused { color: var(--liner-red); }
+
+.yuanse-fact-row.owner-self {
+  --yuanse-fact-color: var(--liner-ink);
+  background: transparent;
+}
+
+.yuanse-fact-row.owner-external {
+  --yuanse-fact-color: var(--liner-amber);
+  background: transparent;
+}
+
+.yuanse-fact-row.owner-external .yuanse-fact-select:not(.status-complete) {
+  color: var(--liner-amber);
+}
+
+.yuanse-cost-panel > summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  min-height: 0;
+  padding: 18px 18px 16px;
+  border-bottom: 1px solid var(--liner-rule);
+}
+
+.yuanse-cost-panel > summary::after {
+  grid-column: 2;
+  grid-row: 1;
+  border-color: var(--liner-ink-soft);
+}
+
+.yuanse-cost-panel > summary > span:first-child {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.yuanse-cost-panel > summary strong,
+.yuanse-cost-summary b,
+.yuanse-cost-totals strong {
+  color: var(--liner-ink);
+}
+
+.yuanse-cost-panel > summary strong {
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 17px;
+}
+
+.yuanse-cost-panel > summary small,
+.yuanse-cost-totals small {
+  color: var(--liner-ink-soft);
+}
+
+.yuanse-cost-summary {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  gap: 3px;
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid var(--liner-rule-soft);
+  white-space: normal;
+}
+
+.yuanse-cost-summary b {
+  font-size: 16px;
+}
+
+.yuanse-cost-summary em,
+.yuanse-cost-totals .is-paid {
+  color: var(--liner-green);
+}
+
+.yuanse-cost-panel[open] > summary {
+  border-bottom: 1px solid var(--liner-rule);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.yuanse-cost-panel-body {
+  gap: 14px;
+  padding: 16px;
+}
+
+.yuanse-cost-totals {
+  grid-template-columns: 1fr;
+  border: 1px solid var(--liner-rule);
+  border-radius: 2px;
+}
+
+.yuanse-cost-totals > span {
+  padding: 10px 11px;
+}
+
+.yuanse-cost-totals > span + span {
+  border-top: 1px solid var(--liner-rule-soft);
+  border-left: 0;
+}
+
+.yuanse-cost-list {
+  gap: 12px;
+}
+
+.yuanse-cost-row {
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--liner-rule);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.yuanse-cost-row label {
+  color: var(--liner-ink-soft);
+}
+
+.yuanse-cost-row input,
+.yuanse-cost-row select,
+.yuanse-cost-remove,
+.yuanse-cost-actions button {
+  border-color: var(--liner-rule);
+  border-radius: 2px;
+  background: rgba(232, 225, 215, 0.7);
+  color: var(--liner-ink);
+}
+
+.yuanse-cost-row input:focus,
+.yuanse-cost-row select:focus {
+  border-color: var(--liner-amber);
+}
+
+.yuanse-cost-actions {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.yuanse-cost-actions > div {
+  display: grid;
+}
+
+.yuanse-cost-actions .yuanse-cost-save {
+  border-color: var(--liner-ink);
+  background: var(--liner-ink);
+  color: var(--liner-paper-light);
+}
+
+.yuanse-thought-section > ol,
+.yuanse-notes-section .issue-description-document,
+.yuanse-progress-notes,
+.yuanse-empty-notes,
+.yuanse-open-items ul {
+  border: 0;
+  border-top: 2px solid var(--liner-ink);
+  border-bottom: 1px solid var(--liner-rule);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--liner-ink);
+}
+
+.yuanse-thought-section li + li {
+  border-top-color: var(--liner-rule-soft);
+}
+
+.yuanse-thought-section time {
+  color: var(--liner-ink-soft);
+}
+
+.yuanse-thought-section p,
+.yuanse-notes-section .issue-description-document,
+.yuanse-progress-notes,
+.yuanse-open-items ul {
+  color: var(--liner-ink);
+}
+
+.yuanse-notes-section .issue-description-document :is(h1, h2, h3, h4, h5, h6, p, li, strong) {
+  color: var(--liner-ink);
+}
+
+.yuanse-empty-notes {
+  color: var(--liner-ink-soft);
+}
+
+@media (max-width: 960px) {
+  .yuanse-issue-detail .issue-properties {
+    right: 60px;
+  }
+
+  .yuanse-production-summary {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 34px 26px;
+  }
+}
+
+@media (max-width: 760px) {
+  .yuanse-issue-detail .issue-detail-layout {
+    display: flex;
+    padding: 18px 12px 52px;
+  }
+
+  .yuanse-issue-detail .issue-properties {
+    position: static;
+    order: 0;
+    width: 100%;
+    margin: 0;
+    padding: 13px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--liner-rule);
+    background: var(--liner-paper-deep);
+  }
+
+  .yuanse-issue-detail .issue-editor-content {
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 18px;
+    padding: 34px 24px 44px 34px;
+  }
+
+  .yuanse-liner-number {
+    font-size: 52px;
+  }
+
+  .yuanse-track-kicker,
+  .yuanse-issue-detail .issue-title-input {
+    width: 100%;
+  }
+
+  .yuanse-track-kicker {
+    flex-wrap: wrap;
+  }
+
+  .yuanse-issue-detail .issue-title-input {
+    min-height: 52px;
+    font-size: 36px;
+  }
+
+  .yuanse-production-summary {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .yuanse-progress-section,
+  .yuanse-cost-panel,
+  .yuanse-thought-section,
+  .yuanse-notes-section,
+  .yuanse-open-items {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .yuanse-cost-panel {
+    border-top: 2px solid var(--liner-ink);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .yuanse-issue-detail .issue-editor-content {
+    grid-template-columns: 1fr;
+    padding: 28px 20px 40px 28px;
+  }
+
+  .yuanse-liner-number,
+  .yuanse-track-kicker,
+  .yuanse-issue-detail .issue-title-input,
+  .yuanse-issue-detail .issue-description-read,
+  .yuanse-issue-detail .issue-description-composer {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .yuanse-liner-number {
+    margin-bottom: 2px;
+    font-size: 46px;
+  }
+
+  .yuanse-fact-list {
+    overflow-x: auto;
+  }
+
+  .yuanse-fact-header,
+  .yuanse-fact-row {
+    grid-template-columns: 86px minmax(110px, 1fr) 104px;
+    min-width: 390px;
+    gap: 8px;
+  }
+}
+
 .task-card-media {
   display: block;
   width: 100%;

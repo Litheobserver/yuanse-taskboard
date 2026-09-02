@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import { defaultUrlTransform } from "react-markdown";
 import remarkBreaks from "remark-breaks";
@@ -75,6 +75,7 @@ import {
 } from "./IssueRelations";
 import { TaskPropertyPicker } from "./TaskPropertyPicker";
 import { buildIssueUrl, readIssueIdentifier } from "../issueRoute";
+import { isReleaseLabel, labelDisplayName } from "../labels";
 import { postEmbeddedHostMessage } from "../embeddedHost.mjs";
 import copyIdIcon from "../assets/figma-taskboard/copy-id.svg";
 import copyLinkIcon from "../assets/figma-taskboard/copy-link.svg";
@@ -802,6 +803,22 @@ function YuanseDescriptionView({
   const visibleFacts = productionVisible
     ? summary.facts
     : summary.facts.filter((fact) => fact.label === "编曲");
+  const phaseForFact = (fact: YuanseFact) => {
+    if (fact.tone === "arrangement") return "arrangement";
+    if (fact.tone === "instrument") return "instrument";
+    return "finishing";
+  };
+  const phaseDetails = {
+    arrangement: { number: "01", label: "创作" },
+    instrument: { number: "02", label: "乐器录音" },
+    finishing: { number: "03", label: "人声与后期" },
+  } as const;
+  const phaseStatus = (phase: keyof typeof phaseDetails) => {
+    const facts = visibleFacts.filter((fact) => phaseForFact(fact) === phase);
+    if (facts.length > 0 && facts.every((fact) => fact.statusTone === "complete")) return "完成";
+    if (facts.some((fact) => fact.statusTone === "active" || fact.statusTone === "complete")) return "进行中";
+    return "未开始";
+  };
   return (
     <div className="yuanse-production-summary">
       <section className="yuanse-stage-card">
@@ -818,32 +835,42 @@ function YuanseDescriptionView({
               <span>供应商 / 执行者</span>
               <span>状态</span>
             </div>
-            {visibleFacts.map((fact) => {
+            {visibleFacts.map((fact, index) => {
               const supplier = yuanseFactSupplier(value, fact, summary.manualNotes);
               const ownership = yuanseSupplierIsExternal(supplier) ? "external" : "self";
+              const phase = phaseForFact(fact);
+              const previousPhase = index > 0 ? phaseForFact(visibleFacts[index - 1]) : null;
               return (
-                <div
-                  className={`yuanse-fact-row owner-${ownership}${fact.statusTone === "complete" ? " is-complete" : ""}`}
-                  key={fact.label}
-                >
-                  <span className="yuanse-fact-label">{fact.label}</span>
-                  <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
-                  <select
-                    className={`yuanse-fact-value yuanse-fact-select status-${fact.statusTone}`}
-                    value={fact.value}
-                    aria-label={`${fact.label}状态`}
-                    onChange={(event) => void onSaveFact(fact.label, event.target.value)}
+                <Fragment key={fact.label}>
+                  {phase !== previousPhase && (
+                    <div className={`yuanse-phase-row phase-${phase}`}>
+                      <span className="yuanse-phase-number">{phaseDetails[phase].number}</span>
+                      <strong>{phaseDetails[phase].label}</strong>
+                      <span className={`yuanse-phase-status is-${phaseStatus(phase)}`}>{phaseStatus(phase)}</span>
+                    </div>
+                  )}
+                  <div
+                    className={`yuanse-fact-row tone-${fact.tone} owner-${ownership}${fact.statusTone === "complete" ? " is-complete" : ""}`}
                   >
-                    {[...new Set([
-                      fact.value,
-                      ...(fact.tone === "arrangement"
-                        ? ["未开始", "编曲中", "修改中", "待确认", "OK"]
-                        : fact.tone === "post"
-                          ? ["未开始", "进行中", "待确认", "OK"]
-                          : ["未录音", "录音中", "待确认", "OK"]),
-                    ])].map((status) => <option key={status} value={status}>{status}</option>)}
-                  </select>
-                </div>
+                    <span className="yuanse-fact-label">{fact.label}</span>
+                    <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
+                    <select
+                      className={`yuanse-fact-value yuanse-fact-select status-${fact.statusTone}`}
+                      value={fact.value}
+                      aria-label={`${fact.label}状态`}
+                      onChange={(event) => void onSaveFact(fact.label, event.target.value)}
+                    >
+                      {[...new Set([
+                        fact.value,
+                        ...(fact.tone === "arrangement"
+                          ? ["未开始", "编曲中", "修改中", "待确认", "OK"]
+                          : fact.tone === "post"
+                            ? ["未开始", "进行中", "待确认", "OK"]
+                            : ["未录音", "录音中", "待确认", "OK"]),
+                      ])].map((status) => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                  </div>
+                </Fragment>
               );
             })}
           </div>
@@ -1094,6 +1121,16 @@ export function TaskDetail({
   const commentInlineImages = inlineMediaImages(commentSegments);
   const editingDraft = serializeInlineMedia(editingSegments);
   const displayIdentifier = currentTask.externalKey ?? currentTask.identifier;
+  const releaseLabel = currentTask.labels.find(isReleaseLabel)
+    ?? currentTask.labels.find((label) => /专|EP|单曲/i.test(label));
+  const releaseTitle = releaseLabel
+    ? labelDisplayName(releaseLabel, language)
+    : text("专辑制作", "Album production");
+  const yuanseTrackNumber = (
+    description.match(/曲目序号[：:]\s*(\d+)/)?.[1]
+    ?? currentTask.identifier.match(/-(\d+)$/)?.[1]
+    ?? "—"
+  ).padStart(2, "0");
   const editingInlineImages = inlineMediaImages(editingSegments);
 
   useEffect(() => {
@@ -1595,10 +1632,13 @@ export function TaskDetail({
             <article className="issue-editor" aria-label={text("议题内容", "Issue content")}>
               <div className="issue-editor-content">
                 {yuanseTask && (
-                  <div className="yuanse-track-kicker" aria-hidden="true">
-                    <span>{displayIdentifier}</span>
-                    <span>YUANSE SONG FILE</span>
-                  </div>
+                  <>
+                    <span className="yuanse-liner-number" aria-hidden="true">{yuanseTrackNumber}</span>
+                    <div className="yuanse-track-kicker" aria-hidden="true">
+                      <span>{releaseTitle}</span>
+                      <span>{displayIdentifier} · SONG FILE</span>
+                    </div>
+                  </>
                 )}
                 <textarea
                   ref={titleRef}
