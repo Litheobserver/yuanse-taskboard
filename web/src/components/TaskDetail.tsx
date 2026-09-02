@@ -822,7 +822,10 @@ function YuanseDescriptionView({
               const supplier = yuanseFactSupplier(value, fact, summary.manualNotes);
               const ownership = yuanseSupplierIsExternal(supplier) ? "external" : "self";
               return (
-                <div className={`yuanse-fact-row owner-${ownership}`} key={fact.label}>
+                <div
+                  className={`yuanse-fact-row owner-${ownership}${fact.statusTone === "complete" ? " is-complete" : ""}`}
+                  key={fact.label}
+                >
                   <span className="yuanse-fact-label">{fact.label}</span>
                   <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
                   <select

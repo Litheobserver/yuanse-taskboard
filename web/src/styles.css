@@ -9688,13 +9688,41 @@ kbd {
 .yuanse-fact-row {
   --yuanse-fact-color: var(--text-secondary);
   --yuanse-fact-soft: var(--surface-muted);
+  position: relative;
+  isolation: isolate;
   display: grid;
+  overflow: hidden;
   grid-template-columns: 132px minmax(140px, 1fr) minmax(160px, 260px);
   align-items: center;
   min-height: 66px;
   gap: 20px;
   padding: 13px 18px;
   border-left: 4px solid var(--yuanse-fact-color);
+}
+
+.yuanse-fact-row > * {
+  position: relative;
+  z-index: 1;
+}
+
+.yuanse-fact-row.is-complete::after {
+  position: absolute;
+  z-index: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 28px;
+  border-bottom: 1px solid rgba(70, 190, 112, 0.34);
+  background:
+    linear-gradient(180deg, transparent, rgba(52, 168, 83, 0.11)),
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 8px,
+      rgba(116, 218, 151, 0.065) 8px 9px
+    );
+  box-shadow: inset 0 -12px 20px rgba(52, 168, 83, 0.035);
+  content: "";
+  pointer-events: none;
 }
 
 .yuanse-fact-row + .yuanse-fact-row {
