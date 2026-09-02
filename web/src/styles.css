@@ -9555,70 +9555,94 @@ kbd {
 }
 
 .yuanse-issue-detail .issue-detail-layout {
-  grid-template-columns: minmax(0, 820px) 230px;
-  gap: 30px;
-  width: min(1280px, 100%);
-  padding: 36px 32px 72px;
+  grid-template-columns: minmax(0, 920px) 220px;
+  gap: 24px;
+  width: min(1320px, 100%);
+  padding: 42px 34px 84px;
 }
 
 .yuanse-issue-detail {
+  --yuanse-canvas: #111214;
+  --yuanse-sheet: #18191c;
+  --yuanse-raised: #1f2024;
+  --yuanse-rule: #35363b;
+  --yuanse-paper: #f0eee8;
+  --yuanse-ink-muted: #9b9da3;
+  --yuanse-supplier: #d9963d;
   background:
-    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 34%),
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--text-primary) 1.7%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--text-primary) 1.25%, transparent) 0 1px,
-      transparent 1px 5px
-    ),
-    var(--bg);
+    radial-gradient(circle at 50% -18%, rgba(255, 255, 255, 0.045), transparent 35%),
+    linear-gradient(180deg, #141518 0%, var(--yuanse-canvas) 42%, #0e0f11 100%);
 }
 
 .yuanse-issue-detail .issue-detail-main,
 .yuanse-issue-detail .issue-properties {
-  border: 1px solid color-mix(in srgb, var(--text-primary) 9%, var(--border));
-  background:
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--text-primary) 1.25%, transparent) 0 1px,
-      transparent 1px 5px
-    ),
-    color-mix(in srgb, var(--surface) 94%, var(--bg));
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--yuanse-rule);
+  background: var(--yuanse-sheet);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
 }
 
 .yuanse-issue-detail .issue-detail-main {
+  position: relative;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 4px 18px 18px 4px;
+}
+
+.yuanse-issue-detail .issue-detail-main::before {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at 50% 94px, #e7b35f 0 3px, transparent 4px),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0 1px, transparent 1px 10px),
+    #292a2e;
+  box-shadow: inset -2px 0 5px rgba(0, 0, 0, 0.32);
+  content: "";
+  pointer-events: none;
 }
 
 .yuanse-issue-detail .issue-properties {
-  top: 28px;
-  padding: 20px 18px;
-  border-radius: 18px;
+  top: 30px;
+  padding: 18px 16px;
+  border-radius: 12px;
+  background: #1b1c1f;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
 }
 
 .yuanse-issue-detail .issue-editor {
-  padding: 26px 30px 34px;
+  padding: 0;
+}
+
+.yuanse-issue-detail .issue-editor-content {
+  position: relative;
+  padding: 34px 40px 46px 48px;
+}
+
+.yuanse-issue-detail .issue-editor-content::before {
+  display: block;
+  margin-bottom: 10px;
+  color: #74767d;
+  content: "YUANSE  /  TRACK SHEET";
+  font-family: "DIN Alternate", "SFMono-Regular", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
 }
 
 .yuanse-issue-detail .issue-title-input {
-  min-height: 58px;
-  padding: 6px 0 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 10%, transparent);
+  min-height: 70px;
+  padding: 0 0 22px;
+  border-bottom: 1px solid var(--yuanse-rule);
   border-radius: 0;
-  font-size: 30px;
-  font-weight: 720;
-  letter-spacing: -0.025em;
-  line-height: 38px;
+  color: var(--yuanse-paper);
+  font-family: "Avenir Next Condensed", "SF Pro Display", "PingFang SC", sans-serif;
+  font-size: clamp(38px, 5vw, 56px);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.14;
 }
 
 .yuanse-issue-detail .issue-sub-issues,
@@ -9637,19 +9661,20 @@ kbd {
   display: block;
   margin-bottom: 14px;
   padding-bottom: 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 9%, transparent);
-  color: var(--text-secondary);
-  content: "制作阶段";
+  border-bottom: 1px solid var(--yuanse-rule);
+  color: #85878e;
+  content: "STAGE  /  制作阶段";
+  font-family: "DIN Alternate", "SFMono-Regular", monospace;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
 .yuanse-issue-detail .issue-description-read {
   width: 100%;
   min-height: 0;
   margin: 0;
-  padding: 20px 0 0;
+  padding: 28px 0 0;
   cursor: default;
 }
 
@@ -9659,42 +9684,32 @@ kbd {
 
 .yuanse-production-summary {
   display: grid;
-  gap: 30px;
+  gap: 36px;
 }
 
 .yuanse-stage-card {
   display: grid;
-  gap: 7px;
-  padding: 22px 24px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  border-radius: 16px;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--accent) 3.8%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
-      transparent 1px 5px
-    ),
-    color-mix(in srgb, var(--accent) 8%, var(--surface));
-  box-shadow: inset 0 1px color-mix(in srgb, white 5%, transparent);
+  grid-template-columns: 170px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 18px;
+  padding: 0 0 22px;
+  border-bottom: 1px solid var(--yuanse-rule);
+  background: transparent;
 }
 
 .yuanse-stage-card > span {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  color: var(--yuanse-ink-muted);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
 }
 
 .yuanse-stage-card > strong {
-  color: var(--text-primary);
-  font-size: 24px;
-  font-weight: 720;
-  line-height: 32px;
+  color: var(--yuanse-paper);
+  font-family: "Avenir Next Condensed", "PingFang SC", sans-serif;
+  font-size: 27px;
+  font-weight: 650;
+  line-height: 34px;
 }
 
 .yuanse-summary-section {
@@ -9704,12 +9719,14 @@ kbd {
 
 .yuanse-summary-section > h2 {
   margin: 0;
-  padding-left: 10px;
-  border-left: 3px solid color-mix(in srgb, var(--text-primary) 36%, transparent);
-  color: var(--text-primary);
-  font-size: 14px;
+  padding: 0;
+  border: 0;
+  color: #a9abb1;
+  font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .yuanse-notes-section > header {
@@ -9720,12 +9737,13 @@ kbd {
 
 .yuanse-notes-section > header h2 {
   margin: 0;
-  padding-left: 10px;
-  border-left: 3px solid color-mix(in srgb, var(--text-primary) 36%, transparent);
-  color: var(--text-primary);
-  font-size: 14px;
+  padding: 0;
+  border: 0;
+  color: #a9abb1;
+  font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
 }
 
 .yuanse-notes-section > header button {
@@ -9746,31 +9764,20 @@ kbd {
 .yuanse-fact-list {
   display: grid;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
-  border-radius: 16px;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--text-primary) 1.9%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--text-primary) 1.35%, transparent) 0 1px,
-      transparent 1px 5px
-    ),
-    var(--surface);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.11);
+  border: 1px solid var(--yuanse-rule);
+  border-radius: 10px;
+  background: #1b1c1f;
 }
 
 .yuanse-fact-header {
   display: grid;
   grid-template-columns: 132px minmax(140px, 1fr) minmax(160px, 260px);
   gap: 20px;
-  padding: 10px 18px 9px 22px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-muted);
-  color: var(--text-tertiary);
+  padding: 11px 20px 10px 24px;
+  border-bottom: 1px solid var(--yuanse-rule);
+  background: #202125;
+  color: #777980;
+  font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.06em;
@@ -9785,10 +9792,12 @@ kbd {
   overflow: hidden;
   grid-template-columns: 132px minmax(140px, 1fr) minmax(160px, 260px);
   align-items: center;
-  min-height: 66px;
+  min-height: 70px;
   gap: 20px;
-  padding: 13px 18px;
-  border-left: 4px solid var(--yuanse-fact-color);
+  padding: 14px 20px;
+  border-left: 3px solid var(--yuanse-fact-color);
+  background: transparent;
+  transition: background 140ms ease;
 }
 
 .yuanse-fact-row > * {
@@ -9799,45 +9808,35 @@ kbd {
 .yuanse-fact-row.is-complete::after {
   position: absolute;
   z-index: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 36px;
+  top: 13px;
+  right: 17px;
+  bottom: 13px;
+  width: min(230px, 30%);
+  border: 1px solid color-mix(in srgb, var(--yuanse-fact-color) 27%, transparent);
+  border-radius: 7px;
   background:
     repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--yuanse-fact-color) 10%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
+      135deg,
       color-mix(in srgb, var(--yuanse-fact-color) 7%, transparent) 0 1px,
       transparent 1px 5px
     ),
-    linear-gradient(
-      180deg,
-      transparent 0%,
-      color-mix(in srgb, var(--yuanse-fact-color) 6%, transparent) 24%,
-      color-mix(in srgb, var(--yuanse-fact-color) 18%, transparent) 100%
-    );
-  border-bottom: 2px solid color-mix(in srgb, var(--yuanse-fact-color) 48%, transparent);
-  box-shadow: none;
+    color-mix(in srgb, var(--yuanse-fact-color) 8%, #17181b);
   content: "";
   pointer-events: none;
 }
 
 .yuanse-fact-row + .yuanse-fact-row {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #303136;
 }
 
 .yuanse-fact-label {
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  min-height: 30px;
-  padding: 4px 11px;
-  border-radius: 999px;
-  background: var(--yuanse-fact-soft);
+  min-height: 28px;
+  padding: 3px 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--yuanse-fact-color);
   font-size: 15px;
   font-weight: 720;
@@ -9847,7 +9846,7 @@ kbd {
 .yuanse-fact-value {
   color: var(--text-primary);
   font-size: 16px;
-  font-weight: 620;
+  font-weight: 650;
   line-height: 25px;
 }
 
@@ -9870,8 +9869,8 @@ kbd {
 .yuanse-fact-select {
   width: min(260px, 100%);
   border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--surface-muted);
+  border-radius: 7px;
+  background: #202125;
   cursor: pointer;
   padding: 8px 34px 8px 11px;
 }
@@ -9900,25 +9899,13 @@ kbd {
 .yuanse-fact-row.owner-self {
   --yuanse-fact-color: var(--text-primary);
   --yuanse-fact-soft: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  background:
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  background: transparent;
 }
 
 .yuanse-fact-row.owner-external {
-  --yuanse-fact-color: #f59e0b;
-  --yuanse-fact-soft: rgba(245, 158, 11, 0.12);
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(245, 158, 11, 0.025) 0 1px,
-      transparent 1px 4px
-    ),
-    rgba(245, 158, 11, 0.045);
+  --yuanse-fact-color: var(--yuanse-supplier);
+  --yuanse-fact-soft: rgba(217, 150, 61, 0.11);
+  background: rgba(217, 150, 61, 0.035);
 }
 
 .yuanse-fact-row.owner-self .yuanse-fact-supplier,
@@ -9936,21 +9923,9 @@ kbd {
 
 .yuanse-cost-panel {
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
-  border-radius: 16px;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
-      transparent 1px 5px
-    ),
-    var(--surface);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--yuanse-rule);
+  border-radius: 10px;
+  background: #1b1c1f;
 }
 
 .yuanse-thought-section > ol {
@@ -9959,20 +9934,9 @@ kbd {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
-  border-radius: 16px;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
-      transparent 1px 5px
-    ),
-    var(--surface);
+  border: 1px solid var(--yuanse-rule);
+  border-radius: 10px;
+  background: #1b1c1f;
   list-style: none;
 }
 
@@ -10154,20 +10118,9 @@ kbd {
 .yuanse-open-items ul {
   margin: 0;
   padding: 16px 18px;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
-  border-radius: 16px;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
-      transparent 1px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
-      transparent 1px 5px
-    ),
-    var(--surface);
+  border: 1px solid var(--yuanse-rule);
+  border-radius: 10px;
+  background: #1b1c1f;
 }
 
 .yuanse-empty-notes {
@@ -10210,12 +10163,17 @@ kbd {
   }
 
   .yuanse-issue-detail .issue-editor {
-    padding: 20px 18px 26px;
+    padding: 0;
+  }
+
+  .yuanse-issue-detail .issue-editor-content {
+    padding: 24px 20px 30px 30px;
   }
 
   .yuanse-issue-detail .issue-title-input {
-    font-size: 25px;
-    line-height: 34px;
+    min-height: 56px;
+    font-size: 34px;
+    line-height: 42px;
   }
 }
 
