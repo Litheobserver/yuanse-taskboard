@@ -810,7 +810,7 @@ function YuanseDescriptionView({
       </section>
 
       {visibleFacts.length > 0 && (
-        <section className="yuanse-summary-section">
+        <section className="yuanse-summary-section yuanse-progress-section">
           <h2>{text("制作进度", "Production progress")}</h2>
           <div className="yuanse-fact-list">
             <div className="yuanse-fact-header" aria-hidden="true">
@@ -1594,6 +1594,12 @@ export function TaskDetail({
           <div className="issue-detail-main">
             <article className="issue-editor" aria-label={text("议题内容", "Issue content")}>
               <div className="issue-editor-content">
+                {yuanseTask && (
+                  <div className="yuanse-track-kicker" aria-hidden="true">
+                    <span>{displayIdentifier}</span>
+                    <span>YUANSE SONG FILE</span>
+                  </div>
+                )}
                 <textarea
                   ref={titleRef}
                   className="issue-title-input"

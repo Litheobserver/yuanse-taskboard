@@ -9555,9 +9555,9 @@ kbd {
 }
 
 .yuanse-issue-detail .issue-detail-layout {
-  grid-template-columns: minmax(0, 920px) 220px;
-  gap: 24px;
-  width: min(1320px, 100%);
+  position: relative;
+  display: block;
+  width: min(1220px, 100%);
   padding: 42px 34px 84px;
 }
 
@@ -9584,7 +9584,7 @@ kbd {
 .yuanse-issue-detail .issue-detail-main {
   position: relative;
   overflow: hidden;
-  border-radius: 4px 18px 18px 4px;
+  border-radius: 4px 20px 20px 4px;
 }
 
 .yuanse-issue-detail .issue-detail-main::before {
@@ -9605,11 +9605,16 @@ kbd {
 }
 
 .yuanse-issue-detail .issue-properties {
-  top: 30px;
-  padding: 18px 16px;
-  border-radius: 12px;
-  background: #1b1c1f;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  z-index: 4;
+  top: 90px;
+  right: 76px;
+  width: 224px;
+  padding: 16px 16px 14px;
+  border-color: #51432f;
+  border-radius: 10px;
+  background: #221f1b;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.035);
 }
 
 .yuanse-issue-detail .issue-editor {
@@ -9618,28 +9623,43 @@ kbd {
 
 .yuanse-issue-detail .issue-editor-content {
   position: relative;
-  padding: 34px 40px 46px 48px;
+  padding: 42px 48px 54px 56px;
 }
 
-.yuanse-issue-detail .issue-editor-content::before {
-  display: block;
-  margin-bottom: 10px;
-  color: #74767d;
-  content: "YUANSE  /  TRACK SHEET";
+.yuanse-track-kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: #777980;
   font-family: "DIN Alternate", "SFMono-Regular", monospace;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
+}
+
+.yuanse-track-kicker > span:first-child {
+  padding: 4px 8px 3px;
+  border: 1px solid #4a4b50;
+  border-radius: 4px;
+  color: #c7c6c1;
+  letter-spacing: 0.08em;
+}
+
+.yuanse-track-kicker > span + span::before {
+  margin-right: 12px;
+  color: #48494e;
+  content: "/";
 }
 
 .yuanse-issue-detail .issue-title-input {
   min-height: 70px;
-  padding: 0 0 22px;
+  padding: 0 280px 28px 0;
   border-bottom: 1px solid var(--yuanse-rule);
   border-radius: 0;
   color: var(--yuanse-paper);
   font-family: "Avenir Next Condensed", "SF Pro Display", "PingFang SC", sans-serif;
-  font-size: clamp(38px, 5vw, 56px);
+  font-size: clamp(42px, 5vw, 60px);
   font-weight: 650;
   letter-spacing: -0.04em;
   line-height: 1.14;
@@ -9662,19 +9682,38 @@ kbd {
   margin-bottom: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--yuanse-rule);
-  color: #85878e;
-  content: "STAGE  /  制作阶段";
+  color: #bc9862;
+  content: "当前制作阶段";
   font-family: "DIN Alternate", "SFMono-Regular", monospace;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
+}
+
+.yuanse-issue-detail .detail-status-row {
+  display: grid;
+  gap: 8px;
+}
+
+.yuanse-issue-detail .detail-status-row > span:first-child {
+  display: none;
+}
+
+.yuanse-issue-detail .detail-status-row button,
+.yuanse-issue-detail .detail-status-row [role="button"] {
+  width: 100%;
+  min-height: 38px;
+  border-color: #5a4932;
+  background: #2b261f;
+  color: #f0d4a8;
+  font-weight: 700;
 }
 
 .yuanse-issue-detail .issue-description-read {
   width: 100%;
   min-height: 0;
   margin: 0;
-  padding: 28px 0 0;
+  padding: 38px 0 0;
   cursor: default;
 }
 
@@ -9684,11 +9723,11 @@ kbd {
 
 .yuanse-production-summary {
   display: grid;
-  gap: 36px;
+  gap: 42px;
 }
 
 .yuanse-stage-card {
-  display: grid;
+  display: none;
   grid-template-columns: 170px minmax(0, 1fr);
   align-items: baseline;
   gap: 18px;
@@ -9714,16 +9753,16 @@ kbd {
 
 .yuanse-summary-section {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .yuanse-summary-section > h2 {
   margin: 0;
   padding: 0;
   border: 0;
-  color: #a9abb1;
+  color: #b5b6bb;
   font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -9739,9 +9778,9 @@ kbd {
   margin: 0;
   padding: 0;
   border: 0;
-  color: #a9abb1;
+  color: #b5b6bb;
   font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
 }
@@ -9771,7 +9810,7 @@ kbd {
 
 .yuanse-fact-header {
   display: grid;
-  grid-template-columns: 132px minmax(140px, 1fr) minmax(160px, 260px);
+  grid-template-columns: 180px minmax(180px, 1fr) minmax(190px, 280px);
   gap: 20px;
   padding: 11px 20px 10px 24px;
   border-bottom: 1px solid var(--yuanse-rule);
@@ -9790,9 +9829,9 @@ kbd {
   isolation: isolate;
   display: grid;
   overflow: hidden;
-  grid-template-columns: 132px minmax(140px, 1fr) minmax(160px, 260px);
+  grid-template-columns: 180px minmax(180px, 1fr) minmax(190px, 280px);
   align-items: center;
-  min-height: 70px;
+  min-height: 74px;
   gap: 20px;
   padding: 14px 20px;
   border-left: 3px solid var(--yuanse-fact-color);
@@ -9838,14 +9877,14 @@ kbd {
   border-radius: 0;
   background: transparent;
   color: var(--yuanse-fact-color);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 720;
   line-height: 22px;
 }
 
 .yuanse-fact-value {
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 650;
   line-height: 25px;
 }
@@ -9854,7 +9893,7 @@ kbd {
   min-width: 0;
   overflow: hidden;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 620;
   line-height: 22px;
   text-overflow: ellipsis;
@@ -9970,8 +10009,8 @@ kbd {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  min-height: 76px;
-  padding: 15px 20px;
+  min-height: 82px;
+  padding: 17px 22px;
   cursor: pointer;
   list-style: none;
 }
@@ -10004,7 +10043,7 @@ kbd {
 
 .yuanse-cost-panel > summary strong {
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 720;
 }
 
@@ -10140,16 +10179,20 @@ kbd {
 
 @media (max-width: 1040px) {
   .yuanse-issue-detail .issue-detail-layout {
-    grid-template-columns: minmax(0, 1fr) 210px;
-    gap: 20px;
     padding: 26px 20px 64px;
+  }
+
+  .yuanse-issue-detail .issue-properties {
+    top: 72px;
+    right: 54px;
   }
 }
 
 @media (max-width: 760px) {
   .yuanse-issue-detail .issue-detail-layout {
     display: flex;
-    gap: 18px;
+    flex-direction: column;
+    gap: 14px;
     padding: 18px 14px 52px;
   }
 
@@ -10158,8 +10201,8 @@ kbd {
     order: -1;
     display: block;
     width: 100%;
+    margin-bottom: 14px;
     padding: 14px;
-    border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 9%, var(--border));
   }
 
   .yuanse-issue-detail .issue-editor {
@@ -10172,6 +10215,7 @@ kbd {
 
   .yuanse-issue-detail .issue-title-input {
     min-height: 56px;
+    padding-right: 0;
     font-size: 34px;
     line-height: 42px;
   }
