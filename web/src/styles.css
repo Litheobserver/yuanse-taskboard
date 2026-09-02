@@ -9556,11 +9556,69 @@ kbd {
 
 .yuanse-issue-detail .issue-detail-layout {
   grid-template-columns: minmax(0, 820px) 230px;
-  gap: 48px;
+  gap: 30px;
+  width: min(1280px, 100%);
+  padding: 36px 32px 72px;
+}
+
+.yuanse-issue-detail {
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 34%),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.7%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.25%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--bg);
+}
+
+.yuanse-issue-detail .issue-detail-main,
+.yuanse-issue-detail .issue-properties {
+  border: 1px solid color-mix(in srgb, var(--text-primary) 9%, var(--border));
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.25%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    color-mix(in srgb, var(--surface) 94%, var(--bg));
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
+}
+
+.yuanse-issue-detail .issue-detail-main {
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.yuanse-issue-detail .issue-properties {
+  top: 28px;
+  padding: 20px 18px;
+  border-radius: 18px;
 }
 
 .yuanse-issue-detail .issue-editor {
-  padding-bottom: 0;
+  padding: 26px 30px 34px;
+}
+
+.yuanse-issue-detail .issue-title-input {
+  min-height: 58px;
+  padding: 6px 0 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 10%, transparent);
+  border-radius: 0;
+  font-size: 30px;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  line-height: 38px;
 }
 
 .yuanse-issue-detail .issue-sub-issues,
@@ -9577,16 +9635,21 @@ kbd {
 
 .yuanse-issue-detail .issue-properties::before {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 9%, transparent);
   color: var(--text-secondary);
   content: "制作阶段";
-  font-size: 13px;
-  font-weight: 650;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
 .yuanse-issue-detail .issue-description-read {
+  width: 100%;
   min-height: 0;
-  padding-top: 14px;
+  margin: 0;
+  padding: 20px 0 0;
   cursor: default;
 }
 
@@ -9596,16 +9659,28 @@ kbd {
 
 .yuanse-production-summary {
   display: grid;
-  gap: 26px;
+  gap: 30px;
 }
 
 .yuanse-stage-card {
   display: grid;
   gap: 7px;
-  padding: 20px 22px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  border-radius: 14px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+  padding: 22px 24px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--accent) 3.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    color-mix(in srgb, var(--accent) 8%, var(--surface));
+  box-shadow: inset 0 1px color-mix(in srgb, white 5%, transparent);
 }
 
 .yuanse-stage-card > span {
@@ -9629,10 +9704,12 @@ kbd {
 
 .yuanse-summary-section > h2 {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
+  padding-left: 10px;
+  border-left: 3px solid color-mix(in srgb, var(--text-primary) 36%, transparent);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .yuanse-notes-section > header {
@@ -9643,10 +9720,12 @@ kbd {
 
 .yuanse-notes-section > header h2 {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
+  padding-left: 10px;
+  border-left: 3px solid color-mix(in srgb, var(--text-primary) 36%, transparent);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .yuanse-notes-section > header button {
@@ -9667,9 +9746,21 @@ kbd {
 .yuanse-fact-list {
   display: grid;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.9%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.35%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.11);
 }
 
 .yuanse-fact-header {
@@ -9711,25 +9802,26 @@ kbd {
   right: 0;
   bottom: 0;
   left: 0;
-  height: 34px;
+  height: 36px;
   background:
-    linear-gradient(
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--yuanse-fact-color) 10%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
       90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--yuanse-fact-color) 70%, transparent) 14%,
-      color-mix(in srgb, var(--yuanse-fact-color) 88%, transparent) 50%,
-      color-mix(in srgb, var(--yuanse-fact-color) 70%, transparent) 86%,
-      transparent 100%
-    ) bottom / 100% 3px no-repeat,
+      color-mix(in srgb, var(--yuanse-fact-color) 7%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
     linear-gradient(
       180deg,
       transparent 0%,
-      color-mix(in srgb, var(--yuanse-fact-color) 5%, transparent) 28%,
-      color-mix(in srgb, var(--yuanse-fact-color) 17%, transparent) 100%
+      color-mix(in srgb, var(--yuanse-fact-color) 6%, transparent) 24%,
+      color-mix(in srgb, var(--yuanse-fact-color) 18%, transparent) 100%
     );
-  box-shadow:
-    inset 0 -1px color-mix(in srgb, white 18%, transparent),
-    0 8px 24px -16px color-mix(in srgb, var(--yuanse-fact-color) 55%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--yuanse-fact-color) 48%, transparent);
+  box-shadow: none;
   content: "";
   pointer-events: none;
 }
@@ -9808,13 +9900,25 @@ kbd {
 .yuanse-fact-row.owner-self {
   --yuanse-fact-color: var(--text-primary);
   --yuanse-fact-soft: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  background: color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    color-mix(in srgb, var(--text-primary) 2.5%, transparent);
 }
 
 .yuanse-fact-row.owner-external {
   --yuanse-fact-color: #f59e0b;
   --yuanse-fact-soft: rgba(245, 158, 11, 0.12);
-  background: rgba(245, 158, 11, 0.045);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(245, 158, 11, 0.025) 0 1px,
+      transparent 1px 4px
+    ),
+    rgba(245, 158, 11, 0.045);
 }
 
 .yuanse-fact-row.owner-self .yuanse-fact-supplier,
@@ -9832,9 +9936,21 @@ kbd {
 
 .yuanse-cost-panel {
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
 }
 
 .yuanse-thought-section > ol {
@@ -9843,9 +9959,20 @@ kbd {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
   list-style: none;
 }
 
@@ -10027,9 +10154,20 @@ kbd {
 .yuanse-open-items ul {
   margin: 0;
   padding: 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 11%, var(--border));
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--text-primary) 1.8%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-primary) 1.2%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--surface);
 }
 
 .yuanse-empty-notes {
@@ -10045,6 +10183,40 @@ kbd {
 
 .yuanse-notes-section .issue-description-document + .yuanse-progress-notes {
   margin-top: 10px;
+}
+
+@media (max-width: 1040px) {
+  .yuanse-issue-detail .issue-detail-layout {
+    grid-template-columns: minmax(0, 1fr) 210px;
+    gap: 20px;
+    padding: 26px 20px 64px;
+  }
+}
+
+@media (max-width: 760px) {
+  .yuanse-issue-detail .issue-detail-layout {
+    display: flex;
+    gap: 18px;
+    padding: 18px 14px 52px;
+  }
+
+  .yuanse-issue-detail .issue-properties {
+    position: static;
+    order: -1;
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 9%, var(--border));
+  }
+
+  .yuanse-issue-detail .issue-editor {
+    padding: 20px 18px 26px;
+  }
+
+  .yuanse-issue-detail .issue-title-input {
+    font-size: 25px;
+    line-height: 34px;
+  }
 }
 
 @media (max-width: 720px) {
