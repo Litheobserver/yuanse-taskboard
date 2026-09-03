@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import { defaultUrlTransform } from "react-markdown";
 import remarkBreaks from "remark-breaks";
@@ -803,22 +803,6 @@ function YuanseDescriptionView({
   const visibleFacts = productionVisible
     ? summary.facts
     : summary.facts.filter((fact) => fact.label === "编曲");
-  const phaseForFact = (fact: YuanseFact) => {
-    if (fact.tone === "arrangement") return "arrangement";
-    if (fact.tone === "instrument") return "instrument";
-    return "finishing";
-  };
-  const phaseDetails = {
-    arrangement: { number: "01", label: "创作" },
-    instrument: { number: "02", label: "乐器录音" },
-    finishing: { number: "03", label: "人声与后期" },
-  } as const;
-  const phaseStatus = (phase: keyof typeof phaseDetails) => {
-    const facts = visibleFacts.filter((fact) => phaseForFact(fact) === phase);
-    if (facts.length > 0 && facts.every((fact) => fact.statusTone === "complete")) return "完成";
-    if (facts.some((fact) => fact.statusTone === "active" || fact.statusTone === "complete")) return "进行中";
-    return "未开始";
-  };
   return (
     <div className="yuanse-production-summary">
       <section className="yuanse-stage-card">
@@ -835,25 +819,17 @@ function YuanseDescriptionView({
               <span>供应商 / 执行者</span>
               <span>状态</span>
             </div>
-            {visibleFacts.map((fact, index) => {
+            {visibleFacts.map((fact) => {
               const supplier = yuanseFactSupplier(value, fact, summary.manualNotes);
               const ownership = yuanseSupplierIsExternal(supplier) ? "external" : "self";
-              const phase = phaseForFact(fact);
-              const previousPhase = index > 0 ? phaseForFact(visibleFacts[index - 1]) : null;
               return (
-                <Fragment key={fact.label}>
-                  {phase !== previousPhase && (
-                    <div className={`yuanse-phase-row phase-${phase}`}>
-                      <span className="yuanse-phase-number">{phaseDetails[phase].number}</span>
-                      <strong>{phaseDetails[phase].label}</strong>
-                      <span className={`yuanse-phase-status is-${phaseStatus(phase)}`}>{phaseStatus(phase)}</span>
-                    </div>
-                  )}
-                  <div
-                    className={`yuanse-fact-row tone-${fact.tone} owner-${ownership}${fact.statusTone === "complete" ? " is-complete" : ""}`}
-                  >
-                    <span className="yuanse-fact-label">{fact.label}</span>
-                    <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
+                <div
+                  className={`yuanse-fact-row tone-${fact.tone} owner-${ownership}${fact.statusTone === "complete" ? " is-complete" : ""}`}
+                  key={fact.label}
+                >
+                  <span className="yuanse-fact-label">{fact.label}</span>
+                  <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
+                  <span className={`yuanse-fact-status${fact.statusTone === "complete" ? " is-complete" : ""}`}>
                     <select
                       className={`yuanse-fact-value yuanse-fact-select status-${fact.statusTone}`}
                       value={fact.value}
@@ -869,8 +845,14 @@ function YuanseDescriptionView({
                             : ["未录音", "录音中", "待确认", "OK"]),
                       ])].map((status) => <option key={status} value={status}>{status}</option>)}
                     </select>
-                  </div>
-                </Fragment>
+                    {fact.statusTone === "complete" && (
+                      <svg className="yuanse-brush-check" viewBox="0 0 36 30" aria-hidden="true">
+                        <path className="yuanse-brush-check-body" d="M3 15.5c3.5 1.2 6.3 4.5 9 7.4C17 15.2 23.1 8.4 33 3.4" />
+                        <path className="yuanse-brush-check-grain" d="M3.8 16.8c3.2 1 5.6 3.7 8.2 6.1C17.8 14.7 23.4 9.1 32.4 4" />
+                      </svg>
+                    )}
+                  </span>
+                </div>
               );
             })}
           </div>

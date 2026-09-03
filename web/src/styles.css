@@ -10482,46 +10482,6 @@ kbd {
   letter-spacing: 0.11em;
 }
 
-.yuanse-phase-row {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 13px;
-  margin-top: 26px;
-  padding: 9px 4px 8px;
-  border-top: 2px solid var(--liner-ink);
-  border-bottom: 1px solid var(--liner-rule);
-  color: var(--liner-ink);
-}
-
-.yuanse-fact-header + .yuanse-phase-row {
-  margin-top: 0;
-  border-top: 0;
-}
-
-.yuanse-phase-number {
-  color: var(--liner-ink-soft);
-  font-family: "Iowan Old Style", "Baskerville", serif;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-}
-
-.yuanse-phase-row strong {
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
-.yuanse-phase-status {
-  color: var(--liner-ink-soft);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.yuanse-phase-status.is-完成 { color: var(--liner-green); }
-.yuanse-phase-status.is-进行中 { color: var(--liner-amber); }
-
 .yuanse-fact-row {
   --yuanse-fact-color: var(--liner-ink);
   display: grid;
@@ -10594,6 +10554,52 @@ kbd {
   color: var(--liner-green);
   text-align: center;
   text-align-last: center;
+}
+
+.yuanse-fact-status {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.yuanse-brush-check {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: calc(50% + 20px);
+  width: 28px;
+  height: 25px;
+  overflow: visible;
+  color: var(--liner-green);
+  pointer-events: none;
+  transform: translateY(-53%) rotate(-5deg);
+}
+
+.yuanse-brush-check path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.yuanse-brush-check-body {
+  opacity: 0.88;
+  stroke-width: 5.2;
+}
+
+.yuanse-brush-check-grain {
+  opacity: 0.46;
+  stroke-dasharray: 1.2 2.1;
+  stroke-width: 2;
+}
+
+.yuanse-fact-row:nth-child(even) .yuanse-brush-check {
+  transform: translateY(-50%) rotate(-8deg) scale(0.97);
+}
+
+.yuanse-fact-row:nth-child(3n) .yuanse-brush-check {
+  left: calc(50% + 19px);
+  transform: translateY(-55%) rotate(-2deg) scale(1.02);
 }
 
 .yuanse-fact-row.owner-self .yuanse-fact-select.status-complete,
