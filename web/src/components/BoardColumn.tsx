@@ -63,6 +63,7 @@ function ColumnStatusIcon({ status }: { status: TaskStatus }) {
 }
 
 interface BoardColumnProps {
+  readOnly?: boolean;
   scrollRef: (element: HTMLDivElement | null) => void;
   status: TaskStatus;
   tasks: Task[];
@@ -92,6 +93,7 @@ interface BoardColumnProps {
 }
 
 export function BoardColumn({
+  readOnly = false,
   scrollRef,
   status,
   tasks,
@@ -145,6 +147,7 @@ export function BoardColumn({
   }
 
   function handleDrop(event: DragEvent<HTMLElement>) {
+    if (readOnly) return;
     event.preventDefault();
     const taskId =
       event.dataTransfer.getData("application/x-taskboard-task") ||
@@ -166,21 +169,25 @@ export function BoardColumn({
 
   return (
     <section
-      className={`board-column status-${status}${isDropTarget ? " is-drop-target" : ""}`}
+      className={`board-column status-${status}${!readOnly && isDropTarget ? " is-drop-target" : ""}`}
       aria-labelledby={`column-${status}`}
-      onDragEnter={() => onDragEnter(status)}
+      onDragEnter={() => {
+        if (!readOnly) onDragEnter(status);
+      }}
       onDragOver={(event) => {
+        if (readOnly) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
         onDragEnter(status);
         setDropBeforeTaskId(findDropBefore(event.currentTarget, event.clientY));
       }}
       onDragLeave={(event) => {
+        if (readOnly) return;
         if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
           setDropBeforeTaskId(undefined);
         }
       }}
-      onDrop={handleDrop}
+      onDrop={readOnly ? undefined : handleDrop}
     >
       <header className="column-header">
         <div className="column-heading">
@@ -193,7 +200,7 @@ export function BoardColumn({
             ) ? ` ${tasks.length}` : ""}
           </h2>
         </div>
-        {createEnabled && (
+        {!readOnly && createEnabled && (
           <div className="column-actions">
             <button
               type="button"
@@ -215,6 +222,7 @@ export function BoardColumn({
             <TaskCard
               key={task.id}
               task={task}
+              readOnly={readOnly}
               presentation={presentations[task.id]}
               now={now}
               isDragging={draggedTaskId === task.id}

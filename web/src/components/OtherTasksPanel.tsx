@@ -32,6 +32,7 @@ function archivedSongTitle(task: Task) {
 
 interface ArchivedTaskCardProps {
   task: Task;
+  readOnly: boolean;
   busy: boolean;
   restoring: boolean;
   onRestore: (task: Task) => void;
@@ -41,6 +42,7 @@ interface ArchivedTaskCardProps {
 
 function ArchivedTaskCard({
   task,
+  readOnly,
   busy,
   restoring,
   onRestore,
@@ -61,7 +63,7 @@ function ArchivedTaskCard({
           <LinearStatusIcon status={task.status} />
           {taskStatusLabel(language, task.status)}
         </span>
-        {task.source !== "jira" && (
+        {!readOnly && task.source !== "jira" && (
           <>
             <button
               className="archived-task-action archived-task-restore"
@@ -90,6 +92,7 @@ function ArchivedTaskCard({
 }
 
 interface OtherTasksPanelProps {
+  readOnly?: boolean;
   open: boolean;
   activeTab: OtherTaskTab;
   tasksByStatus: Record<TaskStatus, Task[]>;
@@ -124,6 +127,7 @@ interface OtherTasksPanelProps {
 }
 
 export function OtherTasksPanel({
+  readOnly = false,
   open,
   activeTab,
   tasksByStatus,
@@ -185,6 +189,7 @@ export function OtherTasksPanel({
   }
 
   function handleDrop(event: DragEvent<HTMLElement>) {
+    if (readOnly) return;
     event.preventDefault();
     if (archived) return;
     const taskId =
@@ -240,7 +245,7 @@ export function OtherTasksPanel({
         })}
       </div>
 
-      {!archived && onCreate && (
+      {!readOnly && !archived && onCreate && (
         <button
           className="other-tasks-add"
           type="button"
@@ -258,26 +263,28 @@ export function OtherTasksPanel({
         role="tabpanel"
         aria-labelledby={`other-tasks-tab-${activeTab}`}
         onDragEnter={() => {
-          if (!archived) onDragEnter(activeTab);
+          if (!readOnly && !archived) onDragEnter(activeTab);
         }}
         onDragOver={(event) => {
-          if (archived) return;
+          if (readOnly || archived) return;
           event.preventDefault();
           event.dataTransfer.dropEffect = "move";
           onDragEnter(activeTab);
           setDropBeforeTaskId(findDropBefore(event.currentTarget, event.clientY));
         }}
         onDragLeave={(event) => {
+          if (readOnly) return;
           if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
             setDropBeforeTaskId(undefined);
           }
         }}
-        onDrop={handleDrop}
+        onDrop={readOnly ? undefined : handleDrop}
       >
         {archived ? archivedTasks.map((task) => (
           <ArchivedTaskCard
             key={task.id}
             task={task}
+            readOnly={readOnly}
             busy={restoringTaskId !== null || deletingTaskId !== null}
             restoring={restoringTaskId === task.id}
             onRestore={onRestore}
@@ -290,6 +297,7 @@ export function OtherTasksPanel({
             <TaskCard
               key={task.id}
               task={task}
+              readOnly={readOnly}
               variant="sidebar"
               presentation={presentations[task.id]}
               now={now}

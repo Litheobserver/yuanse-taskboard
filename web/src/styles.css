@@ -13580,3 +13580,191 @@ kbd {
   .dashboard-metric { border-left: 0; border-top: var(--border-hairline) solid var(--border); }
   .dashboard-metric:first-child { border-top: 0; }
 }
+
+/* Read-only presentation mode: the board remains navigable, while all content
+   changes stay with OpenClaw and Codex. */
+.task-card.is-read-only {
+  cursor: default;
+}
+
+.task-card.is-read-only .task-card-open {
+  cursor: pointer;
+}
+
+.card-property-static,
+.card-label-static {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.card-label-static {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.issue-title-readonly {
+  min-height: 50px;
+  margin: 0;
+  padding: 8px 0;
+  color: var(--text-primary);
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 34px;
+}
+
+.issue-detail.is-read-only .issue-description-read {
+  cursor: text;
+}
+
+.issue-detail.is-read-only .issue-description-read:hover,
+.issue-detail.is-read-only .detail-property-row:hover {
+  background: transparent;
+}
+
+.issue-detail.is-read-only .issue-parent-link:not(.has-parent) {
+  display: none;
+}
+
+.detail-property-value {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1;
+  align-items: center;
+  min-width: 0;
+  min-height: 26px;
+  gap: 9px;
+  padding: 0 9px;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-property-value > svg,
+.detail-property-value > .taskboard-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}
+
+.detail-property-labels {
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
+.detail-property-labels > i {
+  padding: 2px 7px;
+  border: var(--border-hairline) solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.yuanse-issue-detail .issue-title-readonly {
+  grid-column: 2;
+  grid-row: 2;
+  width: calc(100% - 238px);
+  min-height: 62px;
+  margin: 0;
+  padding: 0 0 24px;
+  border-bottom: 2px solid var(--liner-ink);
+  color: var(--liner-ink);
+  font-family: "Songti SC", "STSong", "Iowan Old Style", serif;
+  font-size: clamp(42px, 4.8vw, 58px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.yuanse-issue-detail.is-read-only .detail-status-row .detail-property-value {
+  width: 100%;
+  min-height: 34px;
+  padding: 0;
+  color: var(--liner-ink);
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.yuanse-issue-detail.is-read-only .detail-status-row .detail-property-value > svg,
+.yuanse-issue-detail.is-read-only .detail-status-row .detail-property-value > .taskboard-icon {
+  display: none;
+}
+
+.yuanse-fact-status > .yuanse-fact-value:not(.yuanse-fact-select) {
+  display: block;
+  min-height: 32px;
+  padding: 3px 8px;
+  font-family: "DIN Alternate", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 24px;
+  text-align: right;
+}
+
+.yuanse-fact-status > .yuanse-fact-value.status-complete:not(.yuanse-fact-select) {
+  padding-right: 30px;
+  color: var(--liner-green);
+  text-align: center;
+}
+
+.yuanse-cost-read-list {
+  display: grid;
+  gap: 10px;
+}
+
+.yuanse-cost-read-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--liner-rule);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.yuanse-cost-read-row > span {
+  display: grid;
+  gap: 2px;
+}
+
+.yuanse-cost-read-row small {
+  color: var(--liner-ink-soft);
+  font-size: 10px;
+}
+
+.yuanse-cost-read-row strong {
+  color: var(--liner-ink);
+  font-size: 13px;
+}
+
+.gantt-view.is-read-only .gantt_task_drag,
+.gantt-view.is-read-only .gantt_link_control {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .yuanse-track-kicker,
+  .yuanse-issue-detail .issue-title-readonly {
+    width: 100%;
+  }
+
+  .yuanse-issue-detail .issue-title-readonly {
+    min-height: 52px;
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 560px) {
+  .yuanse-liner-number,
+  .yuanse-track-kicker,
+  .yuanse-issue-detail .issue-title-readonly,
+  .yuanse-issue-detail .issue-description-read {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}

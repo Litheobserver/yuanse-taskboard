@@ -155,6 +155,9 @@ type TasksLoadError = {
 };
 type LoadError = ProjectLoadError | TasksLoadError;
 const SHOW_WORKFLOW_BOARD_ENTRY = false;
+// The public taskboard is a presentation surface. OpenClaw and Codex keep using
+// the same write-capable API, while browser-side mutations stay out of the UI.
+const BOARD_READ_ONLY = true;
 const GANTT_ZOOM_OPTIONS: GanttZoom[] = ["day", "week", "month"];
 
 const AiChat = lazy(() => import("./components/AiChat").then((module) => ({
@@ -1809,6 +1812,8 @@ export function App() {
       }
       if (isTyping || contextMenu || projectMenuOpen) return;
       if (
+        !BOARD_READ_ONLY
+        &&
         event.key.toLowerCase() === "c"
         && !event.metaKey
         && !event.ctrlKey
@@ -2829,7 +2834,7 @@ export function App() {
                         aria-checked={project.id === selectedProjectId}
                         disabled={openingProjectId !== null}
                         key={project.id}
-                        onContextMenu={project.id.startsWith("temp-") ? (event) => {
+                        onContextMenu={!BOARD_READ_ONLY && project.id.startsWith("temp-") ? (event) => {
                           event.preventDefault();
                           setProjectContextMenu({
                             project,
@@ -2847,7 +2852,7 @@ export function App() {
                         {project.id === selectedProjectId && <span className="project-menu-check" aria-hidden="true"><LinearIcon name="check" /></span>}
                       </button>
                     ))}
-                    <button
+                    {!BOARD_READ_ONLY && <button
                       type="button"
                       role="menuitem"
                       disabled={openingProjectId !== null}
@@ -2859,8 +2864,8 @@ export function App() {
                           ? text("Jira 设置", "Jira settings")
                           : text("连接 Jira", "Connect Jira")}
                       </span>
-                    </button>
-                    <button
+                    </button>}
+                    {!BOARD_READ_ONLY && <button
                       type="button"
                       role="menuitem"
                       disabled={openingProjectId !== null}
@@ -2868,7 +2873,7 @@ export function App() {
                     >
                       <TaskboardIcon className="project-avatar" name="create" />
                       <span>{text("创建项目", "Create project")}</span>
-                    </button>
+                    </button>}
                   </div>
                 )}
               </div>
@@ -2878,7 +2883,7 @@ export function App() {
           <div ref={dragRegionRef} className="workspace-drag-region" aria-hidden="true" />
 
           <div className="header-actions">
-            {selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && (
+            {!BOARD_READ_ONLY && selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && (
               <ProjectAutomationMenu
                 automation={selectedProjectAutomation}
                 pending={automationPending}
@@ -2888,7 +2893,7 @@ export function App() {
                 onChange={(options) => void saveProjectAutomation(options)}
               />
             )}
-            {isJiraProject && (
+            {!BOARD_READ_ONLY && isJiraProject && (
               <button
                 className="icon-button"
                 type="button"
@@ -2900,7 +2905,7 @@ export function App() {
                 <LinearIcon name="recurrence" />
               </button>
             )}
-            {selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && !isJiraProject && boardView !== "workflow" && (
+            {!BOARD_READ_ONLY && selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && !isJiraProject && boardView !== "workflow" && (
               <button
                 className="icon-button header-create-button"
                 type="button"
@@ -3077,6 +3082,7 @@ export function App() {
           <TaskDetail
             key={detailTask.id}
             task={detailTask}
+            readOnly={BOARD_READ_ONLY}
             tasks={tasks}
             currentUser={currentUser}
             availableLabels={availableLabels}
@@ -3116,7 +3122,7 @@ export function App() {
               "让 Codex 检查当前项目目录对应的对话，并整理任务状态。",
               "Ask Codex to inspect conversations for this project directory and organize their task status.",
             )}</p>
-            <button
+            {!BOARD_READ_ONLY && <button
               className="button primary"
               type="button"
               onClick={() => setAiOpenThreadRequest((current) => ({
@@ -3130,7 +3136,7 @@ export function App() {
               }))}
             >
               {text("导入当前项目任务状态", "Import current project task status")}
-            </button>
+            </button>}
           </div>
         ) : boardView === "dashboard" ? (
           <DashboardView
@@ -3147,6 +3153,7 @@ export function App() {
           />
         ) : boardView === "list" ? (
           <IssueListView
+            readOnly={BOARD_READ_ONLY}
             scrollRef={issueListRef}
             tasks={filteredTasks}
             presentations={taskPresentations}
@@ -3159,6 +3166,7 @@ export function App() {
         ) : boardView === "gantt" ? (
           <Suspense fallback={<div className="workflow-board-loading">{text("正在打开甘特图…", "Opening Gantt…")}</div>}>
             <GanttView
+              readOnly={BOARD_READ_ONLY}
               tasks={filteredTasks}
               presentations={taskPresentations}
               hasActiveFilters={hasActiveTaskFilters}
@@ -3210,6 +3218,7 @@ export function App() {
                     {mainStatuses.map((status) => (
                       <BoardColumn
                         key={status}
+                        readOnly={BOARD_READ_ONLY}
                         scrollRef={(element) => {
                           boardColumnScrollRefs.current[status] = element;
                         }}
@@ -3228,7 +3237,7 @@ export function App() {
                         contextMenuTaskId={contextMenu?.taskId ?? null}
                         availableLabels={availableLabels}
                         currentUser={currentUser}
-                        createEnabled={!isJiraProject}
+                        createEnabled={!BOARD_READ_ONLY && !isJiraProject}
                         onCreateLabel={persistProjectLabel}
                         onCreate={(initialStatus) => setEditor({ task: null, status: initialStatus })}
                         onEdit={openTaskDetail}
@@ -3250,6 +3259,7 @@ export function App() {
                 </div>
                 {otherTasksMounted && (
                   <OtherTasksPanel
+                    readOnly={BOARD_READ_ONLY}
                     open={otherTasksVisible}
                     activeTab={otherTasksTab}
                     tasksByStatus={tasksByStatus}
@@ -3293,7 +3303,7 @@ export function App() {
         )}
       </main>
 
-      {projectContextMenu && (
+      {!BOARD_READ_ONLY && projectContextMenu && (
         <div
           className="task-context-menu project-context-menu"
           data-project-context-menu
@@ -3316,7 +3326,7 @@ export function App() {
         </div>
       )}
 
-      {jiraDialogOpen && (
+      {!BOARD_READ_ONLY && jiraDialogOpen && (
         <JiraConnectionDialog
           connection={jiraConnection}
           saving={jiraSaving}
@@ -3328,7 +3338,7 @@ export function App() {
         />
       )}
 
-      {projectCreateOpen && (
+      {!BOARD_READ_ONLY && projectCreateOpen && (
         <div
           className="delete-backdrop"
           onPointerDown={(event) => {
@@ -3383,7 +3393,7 @@ export function App() {
         </div>
       )}
 
-      {pendingProjectDelete && (
+      {!BOARD_READ_ONLY && pendingProjectDelete && (
         <div
           className="delete-backdrop"
           onPointerDown={(event) => {
@@ -3451,7 +3461,7 @@ export function App() {
         </div>
       )}
 
-      {pendingArchivedTaskDelete && (
+      {!BOARD_READ_ONLY && pendingArchivedTaskDelete && (
         <div
           className="delete-backdrop"
           onPointerDown={(event) => {
@@ -3503,7 +3513,7 @@ export function App() {
         </div>
       )}
 
-      {editor && (
+      {!BOARD_READ_ONLY && editor && (
         <TaskEditor
           key={editor.task?.id ?? `new-${selectedProjectId}-${editor.status}`}
           task={editor.task}
@@ -3527,7 +3537,7 @@ export function App() {
         />
       )}
 
-      {contextMenu && contextMenuTask && (
+      {!BOARD_READ_ONLY && contextMenu && contextMenuTask && (
         <TaskContextMenu
           task={contextMenuTask}
           position={{ x: contextMenu.x, y: contextMenu.y }}
@@ -3550,7 +3560,7 @@ export function App() {
         />
       )}
 
-      {localAiChatAvailable && (
+      {!BOARD_READ_ONLY && localAiChatAvailable && (
         <Suspense fallback={null}>
           <AiChat
             available

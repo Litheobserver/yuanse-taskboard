@@ -14,6 +14,7 @@ import { TaskboardIcon } from "./TaskboardIcon";
 const COLLAPSED_BY_DEFAULT = new Set<TaskStatus>(["backlog", "done", "canceled"]);
 
 interface IssueListViewProps {
+  readOnly?: boolean;
   scrollRef: RefObject<HTMLDivElement | null>;
   tasks: Task[];
   presentations: Record<string, TaskCardPresentation>;
@@ -34,6 +35,7 @@ function calendarDate(value: string, locale: string) {
 }
 
 export function IssueListView({
+  readOnly = false,
   scrollRef,
   tasks,
   presentations,
@@ -97,7 +99,16 @@ export function IssueListView({
                           {presentations[task.id]?.unread && <span className="task-unread-dot" aria-label={text("有未读更新", "Unread updates")} />}
                         </span>
                         <span className="issue-list-metadata" aria-label={text("议题属性", "Issue properties")}>
-                          <span className="issue-list-priority-control" onClick={stopRow} onKeyDown={stopRow}>
+                          {readOnly ? (
+                            task.priority !== "none" && (
+                              <span
+                                className={`issue-list-priority priority-${task.priority}`}
+                                title={taskPriorityLabel(language, task.priority)}
+                              >
+                                <LinearPriorityIcon priority={task.priority} />
+                              </span>
+                            )
+                          ) : <span className="issue-list-priority-control" onClick={stopRow} onKeyDown={stopRow}>
                             <TaskPropertyPicker
                               value={task.priority}
                               options={TASK_PRIORITIES.map((priority) => ({
@@ -113,7 +124,7 @@ export function IssueListView({
                               onOpenChange={(open) => setPriorityMenuTaskId(open ? task.id : null)}
                               onChange={(priority) => void onUpdate(task, { priority }).catch(() => {})}
                             />
-                          </span>
+                          </span>}
                           <span className="issue-list-labels">
                             {task.labels.slice(0, 2).map((label) => {
                               const presentation = labelPresentation(label, language);
@@ -127,7 +138,12 @@ export function IssueListView({
                             {task.labels.length > 2 && <b>+{task.labels.length - 2}</b>}
                           </span>
                           {task.dueDate && (
-                            <label className="issue-list-date" onClick={stopRow}>
+                            readOnly ? (
+                              <span className="issue-list-date">
+                                <TaskboardIcon name="calendar" />
+                                <span>{calendarDate(task.dueDate, locale)}</span>
+                              </span>
+                            ) : <label className="issue-list-date" onClick={stopRow}>
                               <TaskboardIcon name="calendar" />
                               <span>{calendarDate(task.dueDate, locale)}</span>
                               <input
@@ -141,11 +157,15 @@ export function IssueListView({
                               />
                             </label>
                           )}
-                          <TaskConversationMenu
+                          {!readOnly && <TaskConversationMenu
                             conversations={presentations[task.id]?.conversations ?? []}
                             onOpenConversation={onOpenConversation}
-                          />
-                          <label className="issue-list-assignee" title={task.assignee.name} onClick={stopRow}>
+                          />}
+                          {readOnly ? (
+                            <span className="issue-list-assignee" title={task.assignee.name}>
+                              <ActorAvatar actor={task.assignee} />
+                            </span>
+                          ) : <label className="issue-list-assignee" title={task.assignee.name} onClick={stopRow}>
                             <ActorAvatar actor={task.assignee} />
                             <select
                               aria-label={text(`${displayIdentifier} 负责人`, `${displayIdentifier} assignee`)}
@@ -156,7 +176,7 @@ export function IssueListView({
                               <option value="current-user">{currentUser.name}</option>
                               <option value="codex-agent">Codex Agent</option>
                             </select>
-                          </label>
+                          </label>}
                         </span>
                         <time
                           dateTime={task.createdAt}
