@@ -833,7 +833,9 @@ function YuanseDescriptionView({
                   <span className="yuanse-fact-label">{fact.label}</span>
                   <span className={`yuanse-fact-supplier${supplier.includes("待定") ? " is-pending" : ""}`}>{supplier}</span>
                   <span className={`yuanse-fact-status${fact.statusTone === "complete" ? " is-complete" : ""}`}>
-                    {readOnly ? (
+                    {readOnly && fact.statusTone === "complete" ? (
+                      <span className="sr-only">{fact.value}</span>
+                    ) : readOnly ? (
                       <span className={`yuanse-fact-value status-${fact.statusTone}`}>{fact.value}</span>
                     ) : (
                       <select

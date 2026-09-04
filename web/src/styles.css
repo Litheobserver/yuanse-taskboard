@@ -10252,9 +10252,18 @@ kbd {
   --liner-green: #2f6f55;
   --liner-amber: #a45c21;
   --liner-red: #97463f;
+  --liner-font-display: "Songti SC", "STSong", "Iowan Old Style", "Baskerville", serif;
+  --liner-font-body: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+  --liner-font-meta: "Avenir Next Condensed", "DIN Alternate", "PingFang SC", sans-serif;
   background:
     radial-gradient(circle at 52% -20%, rgba(255, 255, 255, 0.06), transparent 36%),
     var(--liner-canvas);
+}
+
+.yuanse-issue-detail .issue-editor {
+  font-family: var(--liner-font-body);
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
 }
 
 .yuanse-issue-detail .issue-detail-layout {
@@ -10296,8 +10305,8 @@ kbd {
   grid-row: 1 / span 2;
   align-self: start;
   color: var(--liner-ink);
-  font-family: "Iowan Old Style", "Baskerville", "Songti SC", serif;
-  font-size: 78px;
+  font-family: "Iowan Old Style", "Baskerville", var(--liner-font-display);
+  font-size: 76px;
   font-weight: 400;
   letter-spacing: -0.06em;
   line-height: 0.84;
@@ -10312,10 +10321,10 @@ kbd {
   width: calc(100% - 238px);
   margin: 1px 0 9px;
   color: var(--liner-ink-soft);
-  font-family: "DIN Alternate", "SFMono-Regular", monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-family: var(--liner-font-meta);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
 }
 
 .yuanse-track-kicker > span:first-child {
@@ -10323,7 +10332,9 @@ kbd {
   border: 0;
   border-radius: 0;
   color: var(--liner-ink);
-  letter-spacing: 0.06em;
+  font-family: var(--liner-font-body);
+  font-weight: 650;
+  letter-spacing: 0.045em;
 }
 
 .yuanse-track-kicker > span + span::before {
@@ -10341,11 +10352,11 @@ kbd {
   padding: 0 0 24px;
   border-bottom: 2px solid var(--liner-ink);
   color: var(--liner-ink);
-  font-family: "Songti SC", "STSong", "Iowan Old Style", serif;
-  font-size: clamp(42px, 4.8vw, 58px);
+  font-family: var(--liner-font-display);
+  font-size: clamp(42px, 4.6vw, 56px);
   font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
+  letter-spacing: -0.025em;
+  line-height: 1.06;
 }
 
 .yuanse-issue-detail .issue-title-input:focus {
@@ -10382,10 +10393,10 @@ kbd {
   border: 0;
   color: var(--liner-ink-soft);
   content: "当前制作阶段";
-  font-family: "DIN Alternate", "SFMono-Regular", monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.11em;
+  font-family: var(--liner-font-meta);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
 }
 
 .yuanse-issue-detail .detail-status-row {
@@ -10399,9 +10410,9 @@ kbd {
   border: 0;
   background: transparent;
   color: var(--liner-ink);
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 18px;
-  font-weight: 700;
+  font-family: var(--liner-font-display);
+  font-size: 19px;
+  font-weight: 600;
   text-align: left;
 }
 
@@ -10441,10 +10452,10 @@ kbd {
 .yuanse-summary-section > h2,
 .yuanse-notes-section > header h2 {
   color: var(--liner-ink-soft);
-  font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  font-family: var(--liner-font-meta);
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.11em;
 }
 
 .yuanse-notes-section > header button {
@@ -10477,17 +10488,18 @@ kbd {
   border-bottom: 1px solid var(--liner-rule);
   background: transparent;
   color: var(--liner-ink-soft);
-  font-family: "DIN Alternate", "SFMono-Regular", "PingFang SC", monospace;
-  font-size: 9px;
-  letter-spacing: 0.11em;
+  font-family: var(--liner-font-meta);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
 .yuanse-fact-row {
   --yuanse-fact-color: var(--liner-ink);
   display: grid;
   overflow: visible;
-  min-height: 49px;
-  padding: 8px 4px;
+  min-height: 52px;
+  padding: 9px 4px;
   border: 0;
   border-bottom: 1px solid var(--liner-rule-soft);
   background: transparent;
@@ -10506,21 +10518,24 @@ kbd {
   min-height: 0;
   padding: 0;
   color: var(--yuanse-fact-color);
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 24px;
+  font-family: var(--liner-font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 25px;
 }
 
 .yuanse-fact-supplier {
   color: var(--yuanse-fact-color);
-  font-size: 14px;
-  font-weight: 560;
-  line-height: 24px;
+  font-family: var(--liner-font-body);
+  font-size: 14.5px;
+  font-weight: 550;
+  line-height: 25px;
 }
 
 .yuanse-fact-supplier.is-pending {
   color: var(--liner-ink-soft);
+  font-weight: 400;
 }
 
 .yuanse-fact-select,
@@ -10533,9 +10548,9 @@ kbd {
   border-radius: 2px;
   background: transparent;
   color: var(--liner-ink);
-  font-family: "DIN Alternate", "PingFang SC", sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-family: var(--liner-font-meta);
+  font-size: 13.5px;
+  font-weight: 650;
   text-align: right;
   text-align-last: right;
 }
@@ -10657,13 +10672,18 @@ kbd {
 }
 
 .yuanse-cost-panel > summary strong {
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 17px;
+  font-family: var(--liner-font-display);
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .yuanse-cost-panel > summary small,
 .yuanse-cost-totals small {
   color: var(--liner-ink-soft);
+  font-family: var(--liner-font-meta);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 
 .yuanse-cost-summary {
@@ -10678,7 +10698,10 @@ kbd {
 }
 
 .yuanse-cost-summary b {
+  font-family: var(--liner-font-meta);
   font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .yuanse-cost-summary em,
@@ -10777,6 +10800,10 @@ kbd {
 
 .yuanse-thought-section time {
   color: var(--liner-ink-soft);
+  font-family: var(--liner-font-meta);
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.035em;
 }
 
 .yuanse-thought-section p,
@@ -10784,10 +10811,35 @@ kbd {
 .yuanse-progress-notes,
 .yuanse-open-items ul {
   color: var(--liner-ink);
+  font-family: var(--liner-font-body);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.72;
 }
 
 .yuanse-notes-section .issue-description-document :is(h1, h2, h3, h4, h5, h6, p, li, strong) {
   color: var(--liner-ink);
+}
+
+.yuanse-empty-notes {
+  font-family: var(--liner-font-body);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.72;
+}
+
+.yuanse-notes-section .issue-description-document :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--liner-font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.yuanse-notes-section .issue-description-document h1 { font-size: 21px; line-height: 1.35; }
+.yuanse-notes-section .issue-description-document h2 { font-size: 19px; line-height: 1.4; }
+.yuanse-notes-section .issue-description-document h3 { font-size: 17px; line-height: 1.45; }
+
+.yuanse-notes-section .issue-description-document strong {
+  font-weight: 650;
 }
 
 .yuanse-empty-notes {
@@ -13673,11 +13725,11 @@ kbd {
   padding: 0 0 24px;
   border-bottom: 2px solid var(--liner-ink);
   color: var(--liner-ink);
-  font-family: "Songti SC", "STSong", "Iowan Old Style", serif;
-  font-size: clamp(42px, 4.8vw, 58px);
+  font-family: var(--liner-font-display);
+  font-size: clamp(42px, 4.6vw, 56px);
   font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
+  letter-spacing: -0.025em;
+  line-height: 1.06;
 }
 
 .yuanse-issue-detail.is-read-only .detail-status-row .detail-property-value {
@@ -13685,9 +13737,9 @@ kbd {
   min-height: 34px;
   padding: 0;
   color: var(--liner-ink);
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 18px;
-  font-weight: 700;
+  font-family: var(--liner-font-display);
+  font-size: 19px;
+  font-weight: 600;
 }
 
 .yuanse-issue-detail.is-read-only .detail-status-row .detail-property-value > svg,
@@ -13699,9 +13751,9 @@ kbd {
   display: block;
   min-height: 32px;
   padding: 3px 8px;
-  font-family: "DIN Alternate", "PingFang SC", sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-family: var(--liner-font-meta);
+  font-size: 13.5px;
+  font-weight: 650;
   line-height: 24px;
   text-align: right;
 }
@@ -13710,6 +13762,26 @@ kbd {
   padding-right: 30px;
   color: var(--liner-green);
   text-align: center;
+}
+
+.yuanse-issue-detail.is-read-only .yuanse-fact-status.is-complete {
+  min-height: 32px;
+}
+
+.yuanse-issue-detail.is-read-only .yuanse-fact-status.is-complete .yuanse-brush-check {
+  left: 50%;
+  width: 29px;
+  height: 26px;
+  transform: translate(-50%, -53%) rotate(-5deg);
+}
+
+.yuanse-issue-detail.is-read-only .yuanse-fact-row:nth-child(even) .yuanse-brush-check {
+  transform: translate(-50%, -50%) rotate(-8deg) scale(0.97);
+}
+
+.yuanse-issue-detail.is-read-only .yuanse-fact-row:nth-child(3n) .yuanse-brush-check {
+  left: 50%;
+  transform: translate(-50%, -55%) rotate(-2deg) scale(1.02);
 }
 
 .yuanse-cost-read-list {
@@ -13734,12 +13806,18 @@ kbd {
 
 .yuanse-cost-read-row small {
   color: var(--liner-ink-soft);
+  font-family: var(--liner-font-meta);
   font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.055em;
 }
 
 .yuanse-cost-read-row strong {
   color: var(--liner-ink);
-  font-size: 13px;
+  font-family: var(--liner-font-body);
+  font-size: 13.5px;
+  font-weight: 550;
+  line-height: 1.4;
 }
 
 .gantt-view.is-read-only .gantt_task_drag,
