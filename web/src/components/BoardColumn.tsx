@@ -196,7 +196,7 @@ export function BoardColumn({
           </span>
           <h2 id={`column-${status}`}>
             {label}{tasks.length > 0 && (
-              status === "todo" || status === "in_progress" || status === "in_review"
+              status === "todo" || status === "in_progress" || status === "blocked" || status === "in_review"
             ) ? ` ${tasks.length}` : ""}
           </h2>
         </div>
