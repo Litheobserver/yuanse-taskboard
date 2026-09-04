@@ -5,13 +5,13 @@ import { ApiError } from "./database.mjs";
 const DAY_MS = 24 * 60 * 60 * 1_000;
 const CHECK_INTERVAL_MS = 60 * 60 * 1_000;
 const STATUS_LABELS = {
-  backlog: "积压事项",
-  todo: "待办",
-  in_progress: "处理中",
-  in_review: "等你确认",
-  blocked: "遇到阻碍",
-  done: "完成",
-  canceled: "取消",
+  backlog: "尚未开始",
+  todo: "编曲中",
+  in_progress: "编曲确认 / 修改",
+  in_review: "混音母带",
+  blocked: "录音中",
+  done: "已完成",
+  canceled: "暂停",
 };
 
 function isDue(summary) {

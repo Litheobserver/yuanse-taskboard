@@ -24,13 +24,13 @@ const I18N: Record<TaskboardLanguage, TaskboardI18n> = {
 
 const STATUS_LABELS: Record<TaskboardLanguage, Record<TaskStatus, string>> = {
   zh: {
-    backlog: "待立项",
-    todo: "等待认领",
-    in_progress: "处理中",
-    in_review: "等你确认",
-    blocked: "遇到阻碍",
-    done: "完成",
-    canceled: "取消",
+    backlog: "尚未开始",
+    todo: "编曲中",
+    in_progress: "编曲确认 / 修改",
+    in_review: "混音母带",
+    blocked: "录音中",
+    done: "已完成",
+    canceled: "暂停",
   },
   en: {
     backlog: "Backlog",
@@ -60,11 +60,10 @@ const PRIORITY_LABELS: Record<TaskboardLanguage, Record<TaskPriority, string>> =
   },
 };
 
-const TaskboardLanguageContext = createContext<TaskboardLanguage>("en");
+const TaskboardLanguageContext = createContext<TaskboardLanguage>("zh");
 
-export function resolveTaskboardLanguage(value: string | null | undefined): TaskboardLanguage {
-  const normalized = value?.trim().replaceAll("_", "-").toLowerCase() ?? "";
-  return normalized === "zh" || normalized.startsWith("zh-") ? "zh" : "en";
+export function resolveTaskboardLanguage(_value: string | null | undefined): TaskboardLanguage {
+  return "zh";
 }
 
 export function getTaskboardI18n(language: TaskboardLanguage): TaskboardI18n {

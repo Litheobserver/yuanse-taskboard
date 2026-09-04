@@ -22,20 +22,32 @@ function archivedDate(
   return text(`${formatted}归档`, `Archived ${formatted}`);
 }
 
+function archivedSongTitle(task: Task) {
+  if (!task.description.includes("<!-- YUANSE-SYNC")) return task.title;
+  const sequence = task.description.match(/曲目序号[：:]\s*(\d+)/)?.[1]
+    ?? task.identifier.match(/-(\d+)$/)?.[1];
+  if (!sequence) return task.title;
+  return `${sequence.padStart(2, "0")}.${task.title.replace(/^\d{1,3}\.\s*/, "")}`;
+}
+
 interface ArchivedTaskCardProps {
   task: Task;
+  readOnly: boolean;
   busy: boolean;
   restoring: boolean;
   onRestore: (task: Task) => void;
   onDelete: (task: Task) => void;
+  songArchive?: boolean;
 }
 
 function ArchivedTaskCard({
   task,
+  readOnly,
   busy,
   restoring,
   onRestore,
   onDelete,
+  songArchive = false,
 }: ArchivedTaskCardProps) {
   const { language, locale, text } = useTaskboardI18n();
   const displayIdentifier = task.externalKey ?? task.identifier;
@@ -45,13 +57,13 @@ function ArchivedTaskCard({
         <span className="task-identifier">ID: {displayIdentifier}</span>
         <span className="archived-task-date">{archivedDate(task.archivedAt, locale, text)}</span>
       </div>
-      <h3>{task.title}</h3>
+      <h3>{songArchive ? archivedSongTitle(task) : task.title}</h3>
       <div className="archived-task-footer">
         <span className="archived-task-status">
           <LinearStatusIcon status={task.status} />
           {taskStatusLabel(language, task.status)}
         </span>
-        {task.source !== "jira" && (
+        {!readOnly && task.source !== "jira" && (
           <>
             <button
               className="archived-task-action archived-task-restore"
@@ -80,6 +92,7 @@ function ArchivedTaskCard({
 }
 
 interface OtherTasksPanelProps {
+  readOnly?: boolean;
   open: boolean;
   activeTab: OtherTaskTab;
   tasksByStatus: Record<TaskStatus, Task[]>;
@@ -110,9 +123,11 @@ interface OtherTasksPanelProps {
   onDragEnter: (status: TaskStatus) => void;
   onDrop: (status: TaskStatus, taskId: string, beforeTaskId: string | null) => void;
   onOpenConversation: (conversation: TaskConversationItem) => void;
+  archiveLabel?: string;
 }
 
 export function OtherTasksPanel({
+  readOnly = false,
   open,
   activeTab,
   tasksByStatus,
@@ -143,11 +158,12 @@ export function OtherTasksPanel({
   onDragEnter,
   onDrop,
   onOpenConversation,
+  archiveLabel,
 }: OtherTasksPanelProps) {
   const { language, text } = useTaskboardI18n();
   const archived = activeTab === "archived";
   const activeLabel = archived
-    ? text("已归档", "Archived")
+    ? archiveLabel ?? text("已归档", "Archived")
     : taskStatusLabel(language, activeTab);
   const tasks = archived ? archivedTasks : tasksByStatus[activeTab];
   const [dropBeforeTaskId, setDropBeforeTaskId] = useState<string | null | undefined>();
@@ -173,6 +189,7 @@ export function OtherTasksPanel({
   }
 
   function handleDrop(event: DragEvent<HTMLElement>) {
+    if (readOnly) return;
     event.preventDefault();
     if (archived) return;
     const taskId =
@@ -203,7 +220,7 @@ export function OtherTasksPanel({
       <div className="other-tasks-tabs" role="tablist" aria-label={text("其他任务状态", "Other issue statuses")}>
         {OTHER_TASK_TABS.map((tab) => {
           const label = tab === "archived"
-            ? text("已归档", "Archived")
+            ? archiveLabel ?? text("已归档", "Archived")
             : taskStatusLabel(language, tab);
           const count = tab === "archived" ? archivedTasks.length : tasksByStatus[tab].length;
           const selected = tab === activeTab;
@@ -228,7 +245,7 @@ export function OtherTasksPanel({
         })}
       </div>
 
-      {!archived && onCreate && (
+      {!readOnly && !archived && onCreate && (
         <button
           className="other-tasks-add"
           type="button"
@@ -246,30 +263,33 @@ export function OtherTasksPanel({
         role="tabpanel"
         aria-labelledby={`other-tasks-tab-${activeTab}`}
         onDragEnter={() => {
-          if (!archived) onDragEnter(activeTab);
+          if (!readOnly && !archived) onDragEnter(activeTab);
         }}
         onDragOver={(event) => {
-          if (archived) return;
+          if (readOnly || archived) return;
           event.preventDefault();
           event.dataTransfer.dropEffect = "move";
           onDragEnter(activeTab);
           setDropBeforeTaskId(findDropBefore(event.currentTarget, event.clientY));
         }}
         onDragLeave={(event) => {
+          if (readOnly) return;
           if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
             setDropBeforeTaskId(undefined);
           }
         }}
-        onDrop={handleDrop}
+        onDrop={readOnly ? undefined : handleDrop}
       >
         {archived ? archivedTasks.map((task) => (
           <ArchivedTaskCard
             key={task.id}
             task={task}
+            readOnly={readOnly}
             busy={restoringTaskId !== null || deletingTaskId !== null}
             restoring={restoringTaskId === task.id}
             onRestore={onRestore}
             onDelete={onDelete}
+            songArchive={Boolean(archiveLabel)}
           />
         )) : tasks.map((task) => {
           const dragShift = getTaskDragShift(task);
@@ -277,6 +297,7 @@ export function OtherTasksPanel({
             <TaskCard
               key={task.id}
               task={task}
+              readOnly={readOnly}
               variant="sidebar"
               presentation={presentations[task.id]}
               now={now}
@@ -307,7 +328,9 @@ export function OtherTasksPanel({
               {hasActiveFilters
                 ? text("搜索和筛选会同步作用于所有状态。", "Search and filters apply to every status.")
                 : archived
-                  ? text("没有已归档议题。", "There are no archived issues.")
+                  ? archiveLabel
+                    ? text("归档空间已准备好，完成的歌曲会出现在这里。", "The archive is ready. Completed songs will appear here.")
+                    : text("没有已归档议题。", "There are no archived issues.")
                   : text(`没有${activeLabel}。`, `There are no issues in ${activeLabel}.`)}
             </span>
           </div>

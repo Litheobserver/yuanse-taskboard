@@ -189,6 +189,13 @@ export function TaskEditor({
   const [attachmentError, setAttachmentError] = useState<TaskEditorError | null>(null);
   const [attachments, setAttachments] = useState<File[]>(initialDraft?.attachments ?? []);
 
+  const addQuickEntry = (entry: string) => {
+    setDescription((current) => {
+      const trimmed = current.trimEnd();
+      return `${trimmed}${trimmed ? "\n" : ""}${entry}`;
+    });
+  };
+
   const developmentOptions = useMemo(() => {
     const options = [...developmentScan.contexts];
     if (developmentContext && !options.some((option) => contextValue(option) === contextValue(developmentContext))) {
@@ -502,10 +509,16 @@ export function TaskEditor({
             <textarea ref={titleRef} rows={1} value={title} onChange={(event) => setTitle(event.target.value.replace(/\n/g, ""))} placeholder={text("议题标题", "Issue title")} maxLength={240} autoComplete="off" />
           </label>
           {task ? (
-            <label className="composer-description">
-              <span className="sr-only">{text("描述", "Description")}</span>
-              <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder={text("添加描述…", "Add description…")} rows={5} />
-            </label>
+            <>
+              <label className="composer-description">
+                <span className="sr-only">{text("描述", "Description")}</span>
+                <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder={text("添加描述…", "Add description…")} rows={5} />
+              </label>
+              <div className="quick-entry-row" aria-label={text("快捷词条", "Quick entries")}>
+                <span className="quick-entry-label">{text("快捷词条", "Quick")}</span>
+                <button type="button" className="quick-entry-button" onClick={() => addQuickEntry("录音棚：")}>录音棚</button>
+              </div>
+            </>
           ) : (
             <InlineMediaComposer
               ref={descriptionComposerRef}

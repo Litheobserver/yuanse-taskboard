@@ -30,6 +30,7 @@ interface TaskboardGanttTask extends GanttTask {
 }
 
 interface GanttViewProps {
+  readOnly?: boolean;
   tasks: Task[];
   presentations: Record<string, TaskCardPresentation>;
   hasActiveFilters: boolean;
@@ -105,7 +106,7 @@ function dateCellClass(date: Date) {
   return classes.join(" ");
 }
 
-export function GanttView({ tasks, presentations, hasActiveFilters, zoom, hideCompleted, todayRequest, onOpenTask, onUpdate }: GanttViewProps) {
+export function GanttView({ readOnly = false, tasks, presentations, hasActiveFilters, zoom, hideCompleted, todayRequest, onOpenTask, onUpdate }: GanttViewProps) {
   const { language, locale, text } = useTaskboardI18n();
   const i18nRef = useRef({ language, locale, text });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,6 +144,9 @@ export function GanttView({ tasks, presentations, hasActiveFilters, zoom, hideCo
     instance.config.min_column_width = 38;
     instance.config.drag_progress = false;
     instance.config.drag_links = false;
+    instance.config.drag_move = !readOnly;
+    instance.config.drag_resize = !readOnly;
+    instance.config.drag_project = false;
     instance.config.show_progress = true;
     instance.config.show_unscheduled = true;
     instance.config.smart_rendering = true;
@@ -264,6 +268,7 @@ export function GanttView({ tasks, presentations, hasActiveFilters, zoom, hideCo
     instance.attachEvent("onGanttScroll", updateOverlays);
     instance.attachEvent("onGanttRender", updateOverlays);
     instance.attachEvent("onAfterTaskUpdate", (id, item) => {
+      if (readOnly) return true;
       const ganttTask = item as TaskboardGanttTask;
       const task = tasksRef.current.find((candidate) => candidate.id === String(id));
       if (!task || ganttTask.taskboardGroup || item.unscheduled) return true;
@@ -332,7 +337,7 @@ export function GanttView({ tasks, presentations, hasActiveFilters, zoom, hideCo
       ganttRef.current = null;
       instance.destructor();
     };
-  }, []);
+  }, [readOnly]);
 
   useEffect(() => {
     const instance = ganttRef.current;
@@ -419,6 +424,7 @@ export function GanttView({ tasks, presentations, hasActiveFilters, zoom, hideCo
             end_date: addDays(localDate(task.dueDate!), 1),
           } : { unscheduled: true }),
           progress: itemProgress,
+          readonly: readOnly,
           taskboardStatus: task.status,
           taskboardTitle: task.title,
           taskboardUnread: presentations[task.id]?.unread ?? false,
@@ -468,7 +474,7 @@ export function GanttView({ tasks, presentations, hasActiveFilters, zoom, hideCo
     }
     if (restoredViewport) pendingDetailViewport = null;
     hasParsedDataRef.current = true;
-  }, [presentations, visibleTasks]);
+  }, [presentations, readOnly, visibleTasks]);
 
   useEffect(() => {
     ganttRef.current?.ext.zoom.setLevel(zoom);
@@ -492,7 +498,7 @@ export function GanttView({ tasks, presentations, hasActiveFilters, zoom, hideCo
   };
 
   return (
-    <div className="gantt-view">
+    <div className={`gantt-view${readOnly ? " is-read-only" : ""}`}>
       <div className="gantt-canvas-shell">
         <div className="gantt-canvas" ref={containerRef} />
         {todayMarkerLeft !== null && (

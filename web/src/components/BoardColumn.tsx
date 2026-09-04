@@ -14,13 +14,13 @@ export const STATUS_DETAILS: Record<
   TaskStatus,
   { label: string; tone: string }
 > = {
-  backlog: { label: "待立项", tone: "backlog" },
-  todo: { label: "等待认领", tone: "todo" },
-  in_progress: { label: "处理中", tone: "progress" },
-  in_review: { label: "等你确认", tone: "review" },
-  blocked: { label: "遇到阻碍", tone: "blocked" },
-  done: { label: "完成", tone: "done" },
-  canceled: { label: "取消", tone: "canceled" },
+  backlog: { label: "尚未开始", tone: "backlog" },
+  todo: { label: "编曲中", tone: "todo" },
+  in_progress: { label: "编曲确认 / 修改", tone: "progress" },
+  in_review: { label: "混音母带", tone: "review" },
+  blocked: { label: "录音中", tone: "blocked" },
+  done: { label: "已完成", tone: "done" },
+  canceled: { label: "暂停", tone: "canceled" },
 };
 
 const STATUS_ICONS: Record<TaskStatus, TaskboardIconName> = {
@@ -37,8 +37,8 @@ const COLUMN_STATUS_ICONS: Record<TaskStatus, TaskboardIconName> = {
   backlog: "statusTodo",
   todo: "columnStatusTodo",
   in_progress: "columnStatusProgress",
-  in_review: "columnStatusReview",
-  blocked: "columnStatusBlocked",
+  in_review: "columnStatusMixing",
+  blocked: "columnStatusRecording",
   done: "statusReview",
   canceled: "statusBlocked",
 };
@@ -63,6 +63,7 @@ function ColumnStatusIcon({ status }: { status: TaskStatus }) {
 }
 
 interface BoardColumnProps {
+  readOnly?: boolean;
   scrollRef: (element: HTMLDivElement | null) => void;
   status: TaskStatus;
   tasks: Task[];
@@ -92,6 +93,7 @@ interface BoardColumnProps {
 }
 
 export function BoardColumn({
+  readOnly = false,
   scrollRef,
   status,
   tasks,
@@ -145,6 +147,7 @@ export function BoardColumn({
   }
 
   function handleDrop(event: DragEvent<HTMLElement>) {
+    if (readOnly) return;
     event.preventDefault();
     const taskId =
       event.dataTransfer.getData("application/x-taskboard-task") ||
@@ -166,21 +169,25 @@ export function BoardColumn({
 
   return (
     <section
-      className={`board-column status-${status}${isDropTarget ? " is-drop-target" : ""}`}
+      className={`board-column status-${status}${!readOnly && isDropTarget ? " is-drop-target" : ""}`}
       aria-labelledby={`column-${status}`}
-      onDragEnter={() => onDragEnter(status)}
+      onDragEnter={() => {
+        if (!readOnly) onDragEnter(status);
+      }}
       onDragOver={(event) => {
+        if (readOnly) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
         onDragEnter(status);
         setDropBeforeTaskId(findDropBefore(event.currentTarget, event.clientY));
       }}
       onDragLeave={(event) => {
+        if (readOnly) return;
         if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
           setDropBeforeTaskId(undefined);
         }
       }}
-      onDrop={handleDrop}
+      onDrop={readOnly ? undefined : handleDrop}
     >
       <header className="column-header">
         <div className="column-heading">
@@ -189,11 +196,11 @@ export function BoardColumn({
           </span>
           <h2 id={`column-${status}`}>
             {label}{tasks.length > 0 && (
-              status === "todo" || status === "in_progress" || status === "in_review"
+              status === "todo" || status === "in_progress" || status === "blocked" || status === "in_review"
             ) ? ` ${tasks.length}` : ""}
           </h2>
         </div>
-        {createEnabled && (
+        {!readOnly && createEnabled && (
           <div className="column-actions">
             <button
               type="button"
@@ -215,6 +222,7 @@ export function BoardColumn({
             <TaskCard
               key={task.id}
               task={task}
+              readOnly={readOnly}
               presentation={presentations[task.id]}
               now={now}
               isDragging={draggedTaskId === task.id}

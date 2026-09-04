@@ -44,6 +44,16 @@ test("text selection is reserved for editable fields", () => {
   assert.match(styles, /input,[\s\S]*?textarea,[\s\S]*?\[contenteditable="true"\][\s\S]*?user-select: text/);
 });
 
+test("the public board is read-only while retaining view navigation", () => {
+  assert.match(appSource, /const BOARD_READ_ONLY = true/);
+  assert.match(appSource, /<TaskDetail[\s\S]*?readOnly=\{BOARD_READ_ONLY\}/);
+  assert.match(appSource, /<BoardColumn[\s\S]*?readOnly=\{BOARD_READ_ONLY\}/);
+  assert.match(appSource, /<IssueListView[\s\S]*?readOnly=\{BOARD_READ_ONLY\}/);
+  assert.match(appSource, /<GanttView[\s\S]*?readOnly=\{BOARD_READ_ONLY\}/);
+  assert.match(cardSource, /draggable=\{!readOnly && !isMoving\}/);
+  assert.match(detailSource, /readOnly \? \([\s\S]*?className="issue-title-readonly"/);
+});
+
 test("main issue cards stay compact while sidebar cards show ownership and creation time", () => {
   assert.doesNotMatch(cardSource, /projectName|project-chip/);
   assert.match(cardSource, /variant === "sidebar" && \([\s\S]*?className="sidebar-card-creator"/);
@@ -94,13 +104,13 @@ test("the complete Linear-style workflow shares one ordered status source", () =
     "done",
     "canceled",
   ]);
-  assert.match(boardColumnSource, /backlog: \{ label: "待立项", tone: "backlog" \}/);
-  assert.match(boardColumnSource, /todo: \{ label: "等待认领", tone: "todo" \}/);
-  assert.match(boardColumnSource, /in_progress: \{ label: "处理中", tone: "progress" \}/);
-  assert.match(boardColumnSource, /in_review: \{ label: "等你确认", tone: "review" \}/);
-  assert.match(boardColumnSource, /blocked: \{ label: "遇到阻碍", tone: "blocked" \}/);
-  assert.match(boardColumnSource, /done: \{ label: "完成", tone: "done" \}/);
-  assert.match(boardColumnSource, /canceled: \{ label: "取消", tone: "canceled" \}/);
+  assert.match(boardColumnSource, /backlog: \{ label: "尚未开始", tone: "backlog" \}/);
+  assert.match(boardColumnSource, /todo: \{ label: "编曲中", tone: "todo" \}/);
+  assert.match(boardColumnSource, /in_progress: \{ label: "编曲确认 \/ 修改", tone: "progress" \}/);
+  assert.match(boardColumnSource, /in_review: \{ label: "混音母带", tone: "review" \}/);
+  assert.match(boardColumnSource, /blocked: \{ label: "录音中", tone: "blocked" \}/);
+  assert.match(boardColumnSource, /done: \{ label: "已完成", tone: "done" \}/);
+  assert.match(boardColumnSource, /canceled: \{ label: "暂停", tone: "canceled" \}/);
   assert.doesNotMatch(cardSource, /STATUS_ORDER/);
   assert.match(detailSource, /TASK_STATUSES\.map\(\(status\) =>/);
   assert.match(editorSource, /TASK_STATUSES\.map\(\(value\) =>/);

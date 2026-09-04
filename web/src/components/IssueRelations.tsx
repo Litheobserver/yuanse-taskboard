@@ -23,6 +23,7 @@ export interface RelationMutationResult {
 }
 
 interface RelationActions {
+  readOnly?: boolean;
   task: Task;
   tasks: Task[];
   onOpenTask: (task: TaskRelationSummary) => void;
@@ -177,12 +178,14 @@ function descendantIds(task: Task, tasks: Task[]) {
 
 function IssueRelationRow({
   issue,
+  readOnly = false,
   onOpen,
   onRemove,
   removing,
   showAssignee = false,
 }: {
   issue: TaskRelationSummary;
+  readOnly?: boolean;
   onOpen: () => void;
   onRemove: () => void;
   removing: boolean;
@@ -197,7 +200,7 @@ function IssueRelationRow({
         <span className="issue-relation-title">{issue.title}</span>
         {showAssignee && <ActorAvatar actor={issue.assignee} className="issue-relation-assignee" />}
       </button>
-      <button
+      {!readOnly && <button
         className="issue-relation-remove"
         type="button"
         aria-label={text(
@@ -208,12 +211,13 @@ function IssueRelationRow({
         onClick={onRemove}
       >
         <LinearIcon name="close" />
-      </button>
+      </button>}
     </div>
   );
 }
 
 export function IssueParentLink({
+  readOnly = false,
   task,
   tasks,
   onOpenTask,
@@ -238,6 +242,7 @@ export function IssueParentLink({
           <span className="issue-parent-prefix">{text("子议题属于", "Sub-issue of")}</span>
           <IssueRelationRow
             issue={parent}
+            readOnly={readOnly}
             removing={saving}
             onOpen={() => onOpenTask(parent)}
             onRemove={() => {
@@ -249,7 +254,7 @@ export function IssueParentLink({
           />
         </>
       )}
-      <IssuePicker
+      {!readOnly && <IssuePicker
         label={parent
           ? text("更换父议题", "Change parent issue")
           : text("设置父议题", "Set parent issue")}
@@ -263,12 +268,13 @@ export function IssueParentLink({
             setSaving(false);
           }
         }}
-      />
+      />}
     </div>
   );
 }
 
 export function IssueSubIssues({
+  readOnly = false,
   task,
   tasks,
   onOpenTask,
@@ -295,7 +301,7 @@ export function IssueSubIssues({
   const progress = subIssues.length > 0 ? Math.round((done / subIssues.length) * 100) : 0;
 
   return (
-    <section className="issue-sub-issues" aria-labelledby="sub-issues-heading">
+    <section className={`issue-sub-issues${readOnly ? " is-read-only" : ""}`} aria-labelledby="sub-issues-heading">
       <header>
         <div>
           <h2 id="sub-issues-heading">{text("子议题", "Sub-issues")}</h2>
@@ -310,7 +316,7 @@ export function IssueSubIssues({
             </span>
           )}
         </div>
-        <IssuePicker
+        {!readOnly && <IssuePicker
           label={text("添加子议题", "Add sub-issue")}
           candidates={candidates}
           disabled={savingId !== null}
@@ -322,7 +328,7 @@ export function IssueSubIssues({
               setSavingId(null);
             }
           }}
-        />
+        />}
       </header>
       {subIssues.length > 0 && (
         <div className="issue-sub-issue-list">
@@ -331,6 +337,7 @@ export function IssueSubIssues({
             return (
               <IssueRelationRow
                 issue={issue}
+                readOnly={readOnly}
                 key={issue.id}
                 showAssignee
                 removing={savingId === issue.id}
@@ -358,6 +365,7 @@ const RELATION_GROUPS = [
 ] as const;
 
 export function IssueRelationSidebar({
+  readOnly = false,
   task,
   tasks,
   onOpenTask,
@@ -366,6 +374,9 @@ export function IssueRelationSidebar({
 }: RelationActions) {
   const { text } = useTaskboardI18n();
   const [savingKey, setSavingKey] = useState<string | null>(null);
+  const hasRelations = RELATION_GROUPS.some((group) => task.relations[group.field].length > 0);
+
+  if (readOnly && !hasRelations) return null;
 
   return (
     <section className="issue-relation-sidebar" aria-labelledby="relations-heading">
@@ -379,6 +390,7 @@ export function IssueRelationSidebar({
           && candidate.id !== task.id
           && !existing.has(candidate.id)
         ));
+        if (readOnly && issues.length === 0) return null;
         return (
           <div className={`issue-relation-group is-${group.tone}`} key={group.type}>
             <header>
@@ -390,7 +402,7 @@ export function IssueRelationSidebar({
                 )}
                 {label}
               </span>
-              <IssuePicker
+              {!readOnly && <IssuePicker
                 label={text(group.chineseAddLabel, group.englishAddLabel)}
                 candidates={candidates}
                 disabled={savingKey !== null}
@@ -403,11 +415,12 @@ export function IssueRelationSidebar({
                     setSavingKey(null);
                   }
                 }}
-              />
+              />}
             </header>
             {issues.map((issue) => (
               <IssueRelationRow
                 issue={issue}
+                readOnly={readOnly}
                 key={issue.id}
                 removing={savingKey === `${group.type}:${issue.id}`}
                 onOpen={() => onOpenTask(issue)}

@@ -60,6 +60,7 @@ import {
 import { BoardColumn } from "./components/BoardColumn";
 import type { AiChatOpenThreadRequest } from "./components/AiChat";
 import { DashboardView } from "./components/DashboardView";
+import { GlobalOverview } from "./components/GlobalOverview";
 import { IssueListView } from "./components/IssueListView";
 import { JiraConnectionDialog } from "./components/JiraConnectionDialog";
 import { OtherTasksPanel } from "./components/OtherTasksPanel";
@@ -154,6 +155,9 @@ type TasksLoadError = {
 };
 type LoadError = ProjectLoadError | TasksLoadError;
 const SHOW_WORKFLOW_BOARD_ENTRY = false;
+// The public taskboard is a presentation surface. OpenClaw and Codex keep using
+// the same write-capable API, while browser-side mutations stay out of the UI.
+const BOARD_READ_ONLY = true;
 const GANTT_ZOOM_OPTIONS: GanttZoom[] = ["day", "week", "month"];
 
 const AiChat = lazy(() => import("./components/AiChat").then((module) => ({
@@ -647,7 +651,10 @@ export function App() {
   >({});
   const [processingNow, setProcessingNow] = useState(() => Date.now());
   const [recentProjectIds, setRecentProjectIds] = useState(readRecentProjectIds);
-  const initialProjectId = query.get("project") ?? recentProjectIds[0] ?? GLOBAL_PROJECT_ID;
+  const canonicalProjectId = (projectId: string) => (
+    projectId === "album-5" || projectId === "album-6" ? "music-production" : projectId
+  );
+  const initialProjectId = canonicalProjectId(query.get("project") ?? recentProjectIds[0] ?? GLOBAL_PROJECT_ID);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -789,6 +796,7 @@ export function App() {
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
   const isJiraProject = selectedProject?.source === "jira";
+  const isMusicProductionProject = selectedProjectId === "music-production";
   const aiImportProjectId = hasLoadedTasks
     && tasks.length === 0
     && selectedProject
@@ -1233,6 +1241,17 @@ export function App() {
     window.history.pushState(window.history.state, "", detailUrl);
   }
 
+  function openGlobalTask(task: Task) {
+    closeContextMenu();
+    setProjectMenuOpen(false);
+    setBoardView(readProjectBoardView(task.projectId));
+    setSelectedProjectId(task.projectId);
+    setDetailTaskIdentifier(task.identifier);
+    rememberProjectOpen(task.projectId);
+    const detailUrl = buildIssueUrl(window.location.href, task.projectId, task.identifier);
+    window.history.pushState(window.history.state, "", detailUrl);
+  }
+
   function closeTaskDetail() {
     setDetailTaskIdentifier(null);
     const url = buildIssueUrl(window.location.href, selectedProjectId || null, null);
@@ -1258,7 +1277,7 @@ export function App() {
   useEffect(() => {
     function syncRouteFromLocation() {
       const url = new URL(window.location.href);
-      const routeProjectId = url.searchParams.get("project") ?? GLOBAL_PROJECT_ID;
+      const routeProjectId = canonicalProjectId(url.searchParams.get("project") ?? GLOBAL_PROJECT_ID);
       const routeIssueIdentifier = readIssueIdentifier(url.search);
       if (routeIssueIdentifier && boardView === "list" && issueListRef.current) {
         pendingDetailSourceScrollRef.current = {
@@ -1793,6 +1812,8 @@ export function App() {
       }
       if (isTyping || contextMenu || projectMenuOpen) return;
       if (
+        !BOARD_READ_ONLY
+        &&
         event.key.toLowerCase() === "c"
         && !event.metaKey
         && !event.ctrlKey
@@ -1874,10 +1895,10 @@ export function App() {
   const mainStatuses = hasBlockedTasks
     ? MAIN_STATUSES
     : MAIN_STATUSES.filter((status) => status !== "blocked");
-  const mainBoardMinWidth = (mainStatuses.length * 300) + ((mainStatuses.length - 1) * 24);
-  const mainBoardMaxWidth = (mainStatuses.length * 400) + ((mainStatuses.length - 1) * 24);
+  const mainBoardMinWidth = (mainStatuses.length * 240) + ((mainStatuses.length - 1) * 12);
+  const mainBoardMaxWidth = (mainStatuses.length * 360) + ((mainStatuses.length - 1) * 12);
   const otherTasksColumnCount = mainStatuses.length + 1;
-  const otherTasksWidth = `clamp(300px, calc(${100 / otherTasksColumnCount}% - ${(36 + (mainStatuses.length * 24)) / otherTasksColumnCount}px), 400px)`;
+  const otherTasksWidth = `clamp(280px, calc(${100 / otherTasksColumnCount}% - ${(24 + (mainStatuses.length * 12)) / otherTasksColumnCount}px), 360px)`;
 
   const taskPresentations = useMemo(() => Object.fromEntries(tasks.map((task) => {
     const unread = (task.status === "in_review" || task.status === "blocked")
@@ -2345,6 +2366,44 @@ export function App() {
     }
   }
 
+  async function completeAndArchiveSong(task: Task) {
+    setActionError(null);
+    setMovingTaskId(task.id);
+    try {
+      const completedSongs = tasks.filter((candidate) => candidate.status === "done" && candidate.id !== task.id);
+      const sortOrder = completedSongs.length > 0
+        ? Math.max(...completedSongs.map((candidate) => candidate.sortOrder)) + 1024
+        : 1024;
+      const completed = task.status === "done"
+        ? task
+        : await moveTaskRequest(task, "done", sortOrder);
+      const archived = await archiveTaskRequest(completed);
+      setTasks((current) => current.filter((candidate) => candidate.id !== archived.id));
+      setArchivedTasks((current) => sortTasks([
+        ...current.filter((candidate) => candidate.id !== archived.id),
+        archived,
+      ]));
+      pushUndo(text(`${task.identifier} 已移入歌曲归档。`, `${task.identifier} was moved to the song archive.`), async () => {
+        const restored = await restoreTaskRequest(archived);
+        setArchivedTasks((current) => current.filter((candidate) => candidate.id !== restored.id));
+        setTasks((current) => sortTasks([
+          ...current.filter((candidate) => candidate.id !== restored.id),
+          restored,
+        ]));
+      });
+    } catch (error) {
+      setActionError(error instanceof ApiError && error.code === "VERSION_CONFLICT"
+        ? text(
+          "该歌曲已在其他入口更新，看板已重新同步。",
+          "This song changed elsewhere. The board has been synced.",
+        )
+        : errorMessage(error));
+      if (selectedProjectId) void refreshTasks(selectedProjectId, { quiet: true });
+    } finally {
+      setMovingTaskId(null);
+    }
+  }
+
   async function restoreArchivedTask(task: Task) {
     setActionError(null);
     setRestoringTaskId(task.id);
@@ -2661,7 +2720,7 @@ export function App() {
 
   const headerProjectName = selectedProject?.id === GLOBAL_PROJECT_ID
     ? text("全局", "Global")
-    : selectedProject?.name ?? text("任务面板", "Taskboard");
+    : selectedProject?.name ?? text("元色制作看板", "Yuanse Production Board");
   const appShellStyle = embedded
     ? { "--codex-titlebar-left-inset": `${hostContext?.titlebarLeftInset ?? 0}px` } as CSSProperties
     : undefined;
@@ -2685,7 +2744,7 @@ export function App() {
         <aside className="app-nav" aria-label={text("任务面板导航", "Taskboard navigation")}>
           <div className="brand-row">
             <span className="brand-mark" aria-hidden="true"><LinearIcon name="project" /></span>
-            <span>{text("任务面板", "Taskboard")}</span>
+            <span>{text("元色制作看板", "Yuanse Production Board")}</span>
           </div>
 
           <nav className="primary-nav" aria-label={text("视图", "Views")}>
@@ -2694,8 +2753,8 @@ export function App() {
               <span className="nav-glyph" aria-hidden="true">
                 <LinearIcon name="myIssues" />
               </span>
-              {text("议题", "Issues")}
-              <span className="nav-count">{tasks.length}</span>
+              {selectedProjectId === GLOBAL_PROJECT_ID ? text("总览", "Overview") : text("议题", "Issues")}
+              <span className="nav-count">{selectedProjectId === GLOBAL_PROJECT_ID ? Math.max(0, projects.length - 1) : tasks.length}</span>
             </button>
           </nav>
 
@@ -2775,7 +2834,7 @@ export function App() {
                         aria-checked={project.id === selectedProjectId}
                         disabled={openingProjectId !== null}
                         key={project.id}
-                        onContextMenu={project.id.startsWith("temp-") ? (event) => {
+                        onContextMenu={!BOARD_READ_ONLY && project.id.startsWith("temp-") ? (event) => {
                           event.preventDefault();
                           setProjectContextMenu({
                             project,
@@ -2793,7 +2852,7 @@ export function App() {
                         {project.id === selectedProjectId && <span className="project-menu-check" aria-hidden="true"><LinearIcon name="check" /></span>}
                       </button>
                     ))}
-                    <button
+                    {!BOARD_READ_ONLY && <button
                       type="button"
                       role="menuitem"
                       disabled={openingProjectId !== null}
@@ -2805,8 +2864,8 @@ export function App() {
                           ? text("Jira 设置", "Jira settings")
                           : text("连接 Jira", "Connect Jira")}
                       </span>
-                    </button>
-                    <button
+                    </button>}
+                    {!BOARD_READ_ONLY && <button
                       type="button"
                       role="menuitem"
                       disabled={openingProjectId !== null}
@@ -2814,7 +2873,7 @@ export function App() {
                     >
                       <TaskboardIcon className="project-avatar" name="create" />
                       <span>{text("创建项目", "Create project")}</span>
-                    </button>
+                    </button>}
                   </div>
                 )}
               </div>
@@ -2824,7 +2883,7 @@ export function App() {
           <div ref={dragRegionRef} className="workspace-drag-region" aria-hidden="true" />
 
           <div className="header-actions">
-            {selectedProjectId && (
+            {!BOARD_READ_ONLY && selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && (
               <ProjectAutomationMenu
                 automation={selectedProjectAutomation}
                 pending={automationPending}
@@ -2834,7 +2893,7 @@ export function App() {
                 onChange={(options) => void saveProjectAutomation(options)}
               />
             )}
-            {isJiraProject && (
+            {!BOARD_READ_ONLY && isJiraProject && (
               <button
                 className="icon-button"
                 type="button"
@@ -2846,7 +2905,7 @@ export function App() {
                 <LinearIcon name="recurrence" />
               </button>
             )}
-            {selectedProjectId && !isJiraProject && boardView !== "workflow" && (
+            {!BOARD_READ_ONLY && selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && !isJiraProject && boardView !== "workflow" && (
               <button
                 className="icon-button header-create-button"
                 type="button"
@@ -2860,7 +2919,7 @@ export function App() {
           </div>
         </header>
 
-        {selectedProjectId && !detailTask && <div className="board-toolbar">
+        {selectedProjectId && selectedProjectId !== GLOBAL_PROJECT_ID && !detailTask && <div className="board-toolbar">
           <div className="view-tabs" aria-label={text("看板视图", "Board views")}>
             <button
               className={`view-tab${boardView === "dashboard" ? " active" : ""}`}
@@ -2965,6 +3024,22 @@ export function App() {
               filters={filters}
               onChange={setFilters}
             />
+            {boardView === "issues" && isMusicProductionProject && (
+              <button
+                className={`archive-songs-trigger${otherTasksOpen && otherTasksTab === "archived" ? " is-open" : ""}`}
+                type="button"
+                aria-controls="other-tasks-panel"
+                aria-expanded={otherTasksOpen && otherTasksTab === "archived"}
+                onClick={() => {
+                  setOtherTasksTab("archived");
+                  setOtherTasksOpen((current) => otherTasksTab === "archived" ? !current : true);
+                }}
+              >
+                <LinearIcon name="folder" />
+                <span>{text("归档歌曲", "Archived songs")}</span>
+                <strong>{archivedTasks.length}</strong>
+              </button>
+            )}
             {boardView === "issues" && (
               <button
                 className={`other-tasks-trigger${otherTasksOpen ? " is-open" : ""}`}
@@ -3007,6 +3082,7 @@ export function App() {
           <TaskDetail
             key={detailTask.id}
             task={detailTask}
+            readOnly={BOARD_READ_ONLY}
             tasks={tasks}
             currentUser={currentUser}
             availableLabels={availableLabels}
@@ -3030,6 +3106,12 @@ export function App() {
             openingThread={openingThreadTaskId === detailTask.id}
             onError={setActionError}
           />
+        ) : selectedProject?.id === GLOBAL_PROJECT_ID ? (
+          <GlobalOverview
+            projects={projects}
+            onOpenProject={changeProject}
+            onOpenTask={openGlobalTask}
+          />
         ) : hasLoadedTasks
           && tasks.length === 0
           && selectedProject
@@ -3040,7 +3122,7 @@ export function App() {
               "让 Codex 检查当前项目目录对应的对话，并整理任务状态。",
               "Ask Codex to inspect conversations for this project directory and organize their task status.",
             )}</p>
-            <button
+            {!BOARD_READ_ONLY && <button
               className="button primary"
               type="button"
               onClick={() => setAiOpenThreadRequest((current) => ({
@@ -3054,7 +3136,7 @@ export function App() {
               }))}
             >
               {text("导入当前项目任务状态", "Import current project task status")}
-            </button>
+            </button>}
           </div>
         ) : boardView === "dashboard" ? (
           <DashboardView
@@ -3071,6 +3153,7 @@ export function App() {
           />
         ) : boardView === "list" ? (
           <IssueListView
+            readOnly={BOARD_READ_ONLY}
             scrollRef={issueListRef}
             tasks={filteredTasks}
             presentations={taskPresentations}
@@ -3083,6 +3166,7 @@ export function App() {
         ) : boardView === "gantt" ? (
           <Suspense fallback={<div className="workflow-board-loading">{text("正在打开甘特图…", "Opening Gantt…")}</div>}>
             <GanttView
+              readOnly={BOARD_READ_ONLY}
               tasks={filteredTasks}
               presentations={taskPresentations}
               hasActiveFilters={hasActiveTaskFilters}
@@ -3134,6 +3218,7 @@ export function App() {
                     {mainStatuses.map((status) => (
                       <BoardColumn
                         key={status}
+                        readOnly={BOARD_READ_ONLY}
                         scrollRef={(element) => {
                           boardColumnScrollRefs.current[status] = element;
                         }}
@@ -3152,12 +3237,16 @@ export function App() {
                         contextMenuTaskId={contextMenu?.taskId ?? null}
                         availableLabels={availableLabels}
                         currentUser={currentUser}
-                        createEnabled={!isJiraProject}
+                        createEnabled={!BOARD_READ_ONLY && !isJiraProject}
                         onCreateLabel={persistProjectLabel}
                         onCreate={(initialStatus) => setEditor({ task: null, status: initialStatus })}
                         onEdit={openTaskDetail}
                         onUpdate={updateTaskProperties}
-                        onComplete={(task) => void moveTask(task, "done")}
+                        onComplete={(task) => void (
+                          isMusicProductionProject
+                            ? completeAndArchiveSong(task)
+                            : moveTask(task, "done")
+                        )}
                         onContextMenu={(task, position) => setContextMenu({ taskId: task.id, ...position })}
                         onDragStart={startTaskDrag}
                         onDragEnd={endTaskDrag}
@@ -3170,6 +3259,7 @@ export function App() {
                 </div>
                 {otherTasksMounted && (
                   <OtherTasksPanel
+                    readOnly={BOARD_READ_ONLY}
                     open={otherTasksVisible}
                     activeTab={otherTasksTab}
                     tasksByStatus={tasksByStatus}
@@ -3202,6 +3292,9 @@ export function App() {
                     onDragEnter={setDropTarget}
                     onDrop={finishTaskDrop}
                     onOpenConversation={openTaskConversation}
+                    archiveLabel={isMusicProductionProject
+                      ? text("归档歌曲", "Archived songs")
+                      : undefined}
                   />
                 )}
               </>
@@ -3210,7 +3303,7 @@ export function App() {
         )}
       </main>
 
-      {projectContextMenu && (
+      {!BOARD_READ_ONLY && projectContextMenu && (
         <div
           className="task-context-menu project-context-menu"
           data-project-context-menu
@@ -3233,7 +3326,7 @@ export function App() {
         </div>
       )}
 
-      {jiraDialogOpen && (
+      {!BOARD_READ_ONLY && jiraDialogOpen && (
         <JiraConnectionDialog
           connection={jiraConnection}
           saving={jiraSaving}
@@ -3245,7 +3338,7 @@ export function App() {
         />
       )}
 
-      {projectCreateOpen && (
+      {!BOARD_READ_ONLY && projectCreateOpen && (
         <div
           className="delete-backdrop"
           onPointerDown={(event) => {
@@ -3300,7 +3393,7 @@ export function App() {
         </div>
       )}
 
-      {pendingProjectDelete && (
+      {!BOARD_READ_ONLY && pendingProjectDelete && (
         <div
           className="delete-backdrop"
           onPointerDown={(event) => {
@@ -3368,7 +3461,7 @@ export function App() {
         </div>
       )}
 
-      {pendingArchivedTaskDelete && (
+      {!BOARD_READ_ONLY && pendingArchivedTaskDelete && (
         <div
           className="delete-backdrop"
           onPointerDown={(event) => {
@@ -3420,7 +3513,7 @@ export function App() {
         </div>
       )}
 
-      {editor && (
+      {!BOARD_READ_ONLY && editor && (
         <TaskEditor
           key={editor.task?.id ?? `new-${selectedProjectId}-${editor.status}`}
           task={editor.task}
@@ -3444,7 +3537,7 @@ export function App() {
         />
       )}
 
-      {contextMenu && contextMenuTask && (
+      {!BOARD_READ_ONLY && contextMenu && contextMenuTask && (
         <TaskContextMenu
           task={contextMenuTask}
           position={{ x: contextMenu.x, y: contextMenu.y }}
@@ -3467,7 +3560,7 @@ export function App() {
         />
       )}
 
-      {localAiChatAvailable && (
+      {!BOARD_READ_ONLY && localAiChatAvailable && (
         <Suspense fallback={null}>
           <AiChat
             available

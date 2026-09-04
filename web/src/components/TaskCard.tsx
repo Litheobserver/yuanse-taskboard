@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { attachmentContentUrl, resolvePersistedAttachmentUrl } from "../api";
 import {
   TASK_PRIORITIES,
@@ -8,7 +8,7 @@ import {
   type TaskDraft,
   type TaskPriority,
 } from "../types";
-import { labelPresentation } from "../labels";
+import { isReleaseLabel, labelPresentation } from "../labels";
 import { taskPriorityLabel, useTaskboardI18n } from "../i18n";
 import { CODEX_AGENT_ACTOR, actorKey, assigneeTargetForActor } from "../actors";
 import type {
@@ -26,6 +26,7 @@ import processingAnimation from "../assets/figma-taskboard/loading-16.svg";
 
 interface TaskCardProps {
   task: Task;
+  readOnly?: boolean;
   variant?: "main" | "sidebar";
   presentation: TaskCardPresentation;
   now: number;
@@ -49,6 +50,39 @@ interface TaskCardProps {
 function calendarDate(value: string, locale: string) {
   return new Intl.DateTimeFormat(locale, { month: "numeric", day: "numeric" })
     .format(new Date(`${value}T12:00:00`));
+}
+
+type DueDateTone = "future" | "soon" | "today" | "overdue";
+
+function dueDatePresentation(
+  value: string,
+  locale: string,
+  text: (chinese: string, english: string) => string,
+): { label: string; tone: DueDateTone } {
+  const [year, month, day] = value.split("-").map(Number);
+  const dueDay = Date.UTC(year, month - 1, day);
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const daysRemaining = Math.round((dueDay - today) / 86_400_000);
+  const date = calendarDate(value, locale);
+
+  if (daysRemaining < 0) {
+    const daysOverdue = Math.abs(daysRemaining);
+    return {
+      label: text(`${date}，逾期${daysOverdue}天`, `${date}, ${daysOverdue} days overdue`),
+      tone: "overdue",
+    };
+  }
+  if (daysRemaining === 0) {
+    return {
+      label: text(`${date}，今天截止`, `${date}, due today`),
+      tone: "today",
+    };
+  }
+  return {
+    label: text(`${date}，剩余${daysRemaining}天`, `${date}, ${daysRemaining} days left`),
+    tone: daysRemaining <= 7 ? "soon" : "future",
+  };
 }
 
 function createdDate(value: string, locale: string, text: (chinese: string, english: string) => string) {
@@ -75,6 +109,15 @@ function firstTaskImage(task: Task) {
     ?? markdownImage?.[2]
     ?? (task.previewImage ? attachmentContentUrl(task.previewImage) : null);
   return source ? resolvePersistedAttachmentUrl(source) : null;
+}
+
+function productionCardTitle(task: Task) {
+  if (!task.description.includes("<!-- YUANSE-SYNC")) return task.title;
+  const sequence = task.description.match(/曲目序号[：:]\s*(\d+)/)?.[1]
+    ?? task.identifier.match(/-(\d+)$/)?.[1];
+  if (!sequence) return task.title;
+  const title = task.title.replace(/^\d{1,3}\.\s*/, "");
+  return `${sequence.padStart(2, "0")}.${title}`;
 }
 
 function TaskCardMedia({ src }: { src: string }) {
@@ -218,9 +261,14 @@ function TaskLabels({ task }: { task: Task }) {
     <>
       {task.labels.slice(0, 2).map((label) => {
         const presentation = labelPresentation(label, language);
+        const release = isReleaseLabel(label);
         return (
-          <span className={`label-chip${presentation.tone ? ` label-chip-${presentation.tone}` : ""}`} key={label}>
-            {presentation.tone && <i aria-hidden="true" />}
+          <span
+            className={`label-chip${presentation.tone ? ` label-chip-${presentation.tone}` : ""}${release ? " label-chip-release" : ""}`}
+            style={release ? { color: presentation.color } : undefined}
+            key={label}
+          >
+            {(presentation.tone || release) && <i aria-hidden="true" />}
             <span>{presentation.name}</span>
           </span>
         );
@@ -276,18 +324,34 @@ function PriorityControl({
 function DueDateControl({
   task,
   disabled,
+  readOnly,
   onChange,
 }: {
   task: Task;
   disabled: boolean;
+  readOnly: boolean;
   onChange: (dueDate: string | null) => void;
 }) {
   const { locale, text } = useTaskboardI18n();
   const displayIdentifier = task.externalKey ?? task.identifier;
   if (!task.dueDate) return null;
+  const presentation = dueDatePresentation(task.dueDate, locale, text);
+  if (readOnly) {
+    return (
+      <span
+        className={`due-date-chip due-date-${presentation.tone} card-property-static`}
+        title={text(`截止日期 ${task.dueDate}`, `Due date ${task.dueDate}`)}
+      >
+        <TaskboardIcon name="calendar" /> {presentation.label}
+      </span>
+    );
+  }
   return (
-    <label className="due-date-chip card-property-control" title={text(`截止日期 ${task.dueDate}`, `Due date ${task.dueDate}`)}>
-      <TaskboardIcon name="calendar" /> {calendarDate(task.dueDate, locale)}
+    <label
+      className={`due-date-chip due-date-${presentation.tone} card-property-control`}
+      title={text(`截止日期 ${task.dueDate}`, `Due date ${task.dueDate}`)}
+    >
+      <TaskboardIcon name="calendar" /> {presentation.label}
       <input
         type="date"
         aria-label={text(`${displayIdentifier} 截止日期`, `${displayIdentifier} due date`)}
@@ -343,6 +407,7 @@ function AssigneeControl({
 
 export function TaskCard({
   task,
+  readOnly = false,
   variant = "main",
   presentation,
   now,
@@ -362,8 +427,15 @@ export function TaskCard({
   onDragEnd,
   onOpenConversation,
 }: TaskCardProps) {
-  const { locale, text } = useTaskboardI18n();
+  const { language, locale, text } = useTaskboardI18n();
   const displayIdentifier = task.externalKey ?? task.identifier;
+  const cardTitle = productionCardTitle(task);
+  const releaseLabel = task.labels.find(isReleaseLabel);
+  const releaseColor = releaseLabel ? labelPresentation(releaseLabel).color : undefined;
+  const cardStyle: CSSProperties & { "--release-color"?: string } = {
+    ...(dragShift ? { transform: `translate3d(0, ${dragShift}px, 0)` } : {}),
+    ...(releaseColor ? { "--release-color": releaseColor } : {}),
+  };
   const [propertyMenu, setPropertyMenu] = useState<"priority" | "labels" | null>(null);
   const [savingProperty, setSavingProperty] = useState<"priority" | "labels" | "dueDate" | "assignee" | null>(null);
   const creator: ActorIdentity = {
@@ -372,20 +444,20 @@ export function TaskCard({
     name: task.creatorName,
     avatarUrl: task.creatorAvatarUrl,
   };
-  const processingCard = task.status === "in_progress";
+  const processingCard = false;
   const supportsConversation = task.status === "in_progress"
     || task.status === "in_review"
     || task.status === "blocked"
     || task.status === "done"
     || task.status === "canceled";
-  const showsConversation = supportsConversation && presentation.conversations.length > 0;
+  const showsConversation = !readOnly && supportsConversation && presentation.conversations.length > 0;
   const showsInlineParticipants = variant === "main"
     && task.participants.length > 0;
   const image = firstTaskImage(task);
   const hasProperties = task.priority !== "none" || task.labels.length > 0 || task.dueDate;
   const showsProperties = !processingCard
     && (hasProperties || showsInlineParticipants || showsConversation);
-  const propertyDisabled = savingProperty !== null;
+  const propertyDisabled = readOnly || savingProperty !== null;
 
   function updateProperty(changes: Partial<TaskDraft>, property: NonNullable<typeof savingProperty>) {
     setSavingProperty(property);
@@ -396,18 +468,23 @@ export function TaskCard({
 
   return (
     <article
-      className={`task-card task-card-${variant} status-${task.status}${processingCard ? " is-processing-card" : ""}${processingCard && presentation.processing.running ? " is-running-card" : ""}${image ? " has-media" : ""}${presentation.unread ? " is-unread" : ""}${isDragging ? " is-dragging" : ""}${dragShift ? " is-drag-shifted" : ""}${isMoving ? " is-moving" : ""}${isSettling ? " is-settling" : ""}${isContextMenuOpen ? " is-context-open" : ""}${propertyMenu ? " is-property-menu-open" : ""}`}
-      style={dragShift ? { transform: `translate3d(0, ${dragShift}px, 0)` } : undefined}
-      draggable={!isMoving}
+      className={`task-card task-card-${variant} status-${task.status}${readOnly ? " is-read-only" : ""}${releaseLabel ? " has-release-identity" : ""}${processingCard ? " is-processing-card" : ""}${processingCard && presentation.processing.running ? " is-running-card" : ""}${image ? " has-media" : ""}${presentation.unread ? " is-unread" : ""}${isDragging ? " is-dragging" : ""}${dragShift ? " is-drag-shifted" : ""}${isMoving ? " is-moving" : ""}${isSettling ? " is-settling" : ""}${isContextMenuOpen ? " is-context-open" : ""}${propertyMenu ? " is-property-menu-open" : ""}`}
+      style={cardStyle}
+      draggable={!readOnly && !isMoving}
       aria-labelledby={`task-${task.id}-title`}
       data-task-id={task.id}
       data-drag-shift={dragShift || undefined}
       onContextMenu={(event) => {
+        if (readOnly) return;
         event.preventDefault();
         event.stopPropagation();
         onContextMenu(task, { x: event.clientX, y: event.clientY });
       }}
       onDragStart={(event) => {
+        if (readOnly) {
+          event.preventDefault();
+          return;
+        }
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", task.id);
         event.dataTransfer.setData("application/x-taskboard-task", task.id);
@@ -418,7 +495,7 @@ export function TaskCard({
       <button
         className="task-card-open"
         type="button"
-        aria-label={text(`打开 ${displayIdentifier}: ${task.title}`, `Open ${displayIdentifier}: ${task.title}`)}
+        aria-label={text(`打开 ${displayIdentifier}: ${cardTitle}`, `Open ${displayIdentifier}: ${cardTitle}`)}
         onClick={() => onEdit(task)}
       />
 
@@ -427,7 +504,7 @@ export function TaskCard({
           <span className="task-identifier">ID: {displayIdentifier}</span>
         </span>
         {presentation.unread && <span className="task-unread-dot" aria-label={text("有未读更新", "Unread updates")} />}
-        {task.status === "in_review" && onComplete && (
+        {!readOnly && task.status === "in_review" && onComplete && (
           <button
             className="task-card-complete"
             type="button"
@@ -444,19 +521,23 @@ export function TaskCard({
         )}
         {variant === "sidebar" && (
           <span className="sidebar-card-creator">
-            <AssigneeControl
-              task={task}
-              participants={task.participants.length ? task.participants : [creator]}
-              currentUser={currentUser}
-              disabled={propertyDisabled || task.source === "jira"}
-              onChange={(assigneeTarget) => updateProperty({ assigneeTarget }, "assignee")}
-            />
+            {readOnly ? (
+              <ParticipantAvatars participants={task.participants.length ? task.participants : [creator]} />
+            ) : (
+              <AssigneeControl
+                task={task}
+                participants={task.participants.length ? task.participants : [creator]}
+                currentUser={currentUser}
+                disabled={propertyDisabled || task.source === "jira"}
+                onChange={(assigneeTarget) => updateProperty({ assigneeTarget }, "assignee")}
+              />
+            )}
             <span>{createdDate(task.createdAt, locale, text)}</span>
           </span>
         )}
       </div>
 
-      <h3 id={`task-${task.id}-title`}>{task.title}</h3>
+      <h3 id={`task-${task.id}-title`}>{cardTitle}</h3>
 
       {image && (
         <TaskCardMedia key={image} src={image} />
@@ -465,44 +546,53 @@ export function TaskCard({
       {showsProperties && (
         <div className="card-properties" aria-label={text("议题属性", "Issue properties")}>
           {task.priority !== "none" && (
-            <PriorityControl
-              task={task}
-              disabled={propertyDisabled}
-              open={propertyMenu === "priority"}
-              onOpenChange={(open) => setPropertyMenu(open ? "priority" : null)}
-              onChange={(priority) => updateProperty({ priority }, "priority")}
-            />
+            readOnly ? (
+              <span
+                className={`priority-chip priority-chip-${task.priority} card-property-static`}
+                title={taskPriorityLabel(language, task.priority)}
+              >
+                <LinearPriorityIcon priority={task.priority} />
+              </span>
+            ) : (
+              <PriorityControl
+                task={task}
+                disabled={propertyDisabled}
+                open={propertyMenu === "priority"}
+                onOpenChange={(open) => setPropertyMenu(open ? "priority" : null)}
+                onChange={(priority) => updateProperty({ priority }, "priority")}
+              />
+            )
           )}
           {task.labels.length > 0 && (
-            <LabelPicker
-              availableLabels={availableLabels}
-              selectedLabels={task.labels}
-              open={propertyMenu === "labels"}
-              disabled={propertyDisabled}
-              className="card-label-picker card-property-control"
-              triggerClassName="card-label-trigger"
-              triggerContent={<TaskLabels task={task} />}
-              onOpenChange={(open) => setPropertyMenu(open ? "labels" : null)}
-              onChange={(labels) => updateProperty({ labels }, "labels")}
-              onCreateLabel={onCreateLabel}
-            />
+            readOnly ? (
+              <span className="card-label-static"><TaskLabels task={task} /></span>
+            ) : (
+              <LabelPicker
+                availableLabels={availableLabels}
+                selectedLabels={task.labels}
+                open={propertyMenu === "labels"}
+                disabled={propertyDisabled}
+                className="card-label-picker card-property-control"
+                triggerClassName="card-label-trigger"
+                triggerContent={<TaskLabels task={task} />}
+                onOpenChange={(open) => setPropertyMenu(open ? "labels" : null)}
+                onChange={(labels) => updateProperty({ labels }, "labels")}
+                onCreateLabel={onCreateLabel}
+              />
+            )
           )}
-          <DueDateControl
-            task={task}
-            disabled={propertyDisabled}
-            onChange={(dueDate) => updateProperty({
-              dueDate,
-              ...(dueDate ? {} : { recurrence: null }),
-            }, "dueDate")}
-          />
           {showsInlineParticipants && (
-            <AssigneeControl
-              task={task}
-              participants={task.participants}
-              currentUser={currentUser}
-              disabled={propertyDisabled || task.source === "jira"}
-              onChange={(assigneeTarget) => updateProperty({ assigneeTarget }, "assignee")}
-            />
+            readOnly ? (
+              <ParticipantAvatars participants={task.participants} />
+            ) : (
+              <AssigneeControl
+                task={task}
+                participants={task.participants}
+                currentUser={currentUser}
+                disabled={propertyDisabled || task.source === "jira"}
+                onChange={(assigneeTarget) => updateProperty({ assigneeTarget }, "assignee")}
+              />
+            )
           )}
           {showsConversation && <span className="card-properties-spacer" aria-hidden="true" />}
           {showsConversation && (
@@ -511,6 +601,15 @@ export function TaskCard({
               onOpenConversation={onOpenConversation}
             />
           )}
+          <DueDateControl
+            task={task}
+            disabled={propertyDisabled}
+            readOnly={readOnly}
+            onChange={(dueDate) => updateProperty({
+              dueDate,
+              ...(dueDate ? {} : { recurrence: null }),
+            }, "dueDate")}
+          />
         </div>
       )}
 

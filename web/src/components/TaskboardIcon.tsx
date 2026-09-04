@@ -10,7 +10,9 @@ import columnAddReview from "../assets/figma-taskboard/column-add-review.svg";
 import columnAddTodo from "../assets/figma-taskboard/column-add-todo.svg";
 import columnAdd from "../assets/figma-taskboard/column-add.svg";
 import columnStatusBlocked from "../assets/figma-taskboard/column-status-blocked.svg";
+import columnStatusMixing from "../assets/figma-taskboard/column-status-mixing.svg";
 import columnStatusProgress from "../assets/figma-taskboard/column-status-progress.svg";
+import columnStatusRecording from "../assets/figma-taskboard/column-status-recording.svg";
 import columnStatusReview from "../assets/figma-taskboard/column-status-review.svg";
 import columnStatusTodo from "../assets/figma-taskboard/column-status-todo.svg";
 import conversation from "../assets/figma-taskboard/conversation.svg";
@@ -41,7 +43,9 @@ const TASKBOARD_ICONS = {
   columnAddReview,
   columnAddTodo,
   columnStatusBlocked,
+  columnStatusMixing,
   columnStatusProgress,
+  columnStatusRecording,
   columnStatusReview,
   columnStatusTodo,
   conversation,
@@ -69,6 +73,8 @@ const MONOCHROME_ICONS = new Set<TaskboardIconName>([
   "breadcrumb",
   "calendar",
   "columnAdd",
+  "columnStatusMixing",
+  "columnStatusRecording",
   "conversation",
   "create",
   "dropdown",

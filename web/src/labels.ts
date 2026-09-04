@@ -14,13 +14,40 @@ export const DEFAULT_LABELS = [
   { name: "phase-6", color: "#475569" },
 ] as const;
 
+export const RELEASE_LABEL_PREFIX = "作品:";
+
+const RELEASE_COLORS = ["#8b5cf6", "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#14b8a6"];
+const KNOWN_RELEASE_COLORS: Record<string, string> = {
+  "焦迈奇四专": "#8b5cf6",
+  "鹿先森五专": "#06b6d4",
+};
+
+export function isReleaseLabel(name: string): boolean {
+  return name.startsWith(RELEASE_LABEL_PREFIX);
+}
+
+function releaseName(name: string): string {
+  return name.slice(RELEASE_LABEL_PREFIX.length).trim();
+}
+
+function stableReleaseColor(name: string): string {
+  const cleanName = releaseName(name);
+  const known = KNOWN_RELEASE_COLORS[cleanName];
+  if (known) return known;
+  let hash = 0;
+  for (const character of cleanName) hash = ((hash * 31) + character.codePointAt(0)!) >>> 0;
+  return RELEASE_COLORS[hash % RELEASE_COLORS.length];
+}
+
 export function labelColor(name: string): string {
+  if (isReleaseLabel(name)) return stableReleaseColor(name);
   return DEFAULT_LABELS.find((label) => label.name === name)?.color ?? "#8b8d92";
 }
 
 export type LabelTone = "bug" | "feature" | null;
 
 export function labelDisplayName(name: string, language: TaskboardLanguage = "zh"): string {
+  if (isReleaseLabel(name)) return releaseName(name);
   if (name === "缺陷" || name.toLocaleUpperCase() === "BUG") return "BUG";
   if (name === "特性" || name === "新功能") return language === "zh" ? "新功能" : "Feature";
   if (name === "改进") return language === "zh" ? "改进" : "Improvement";
