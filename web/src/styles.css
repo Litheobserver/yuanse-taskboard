@@ -10494,6 +10494,10 @@ kbd {
   letter-spacing: 0.08em;
 }
 
+.yuanse-fact-header > span:last-child {
+  text-align: center;
+}
+
 .yuanse-fact-row {
   --yuanse-fact-color: var(--liner-ink);
   display: grid;
@@ -10551,8 +10555,8 @@ kbd {
   font-family: var(--liner-font-meta);
   font-size: 13.5px;
   font-weight: 650;
-  text-align: right;
-  text-align-last: right;
+  text-align: center;
+  text-align-last: center;
 }
 
 .yuanse-fact-select:hover,
@@ -13755,7 +13759,7 @@ kbd {
   font-size: 13.5px;
   font-weight: 650;
   line-height: 24px;
-  text-align: right;
+  text-align: center;
 }
 
 .yuanse-fact-status > .yuanse-fact-value.status-complete:not(.yuanse-fact-select) {
