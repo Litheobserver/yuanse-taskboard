@@ -37,8 +37,8 @@ const COLUMN_STATUS_ICONS: Record<TaskStatus, TaskboardIconName> = {
   backlog: "statusTodo",
   todo: "columnStatusTodo",
   in_progress: "columnStatusProgress",
-  in_review: "columnStatusReview",
-  blocked: "columnStatusBlocked",
+  in_review: "columnStatusMixing",
+  blocked: "columnStatusRecording",
   done: "statusReview",
   canceled: "statusBlocked",
 };
