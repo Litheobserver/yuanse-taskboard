@@ -10521,7 +10521,7 @@ kbd {
 .yuanse-fact-label {
   min-height: 0;
   padding: 0;
-  color: var(--yuanse-fact-color);
+  color: var(--liner-ink);
   font-family: var(--liner-font-display);
   font-size: 16px;
   font-weight: 600;
@@ -10540,6 +10540,14 @@ kbd {
 .yuanse-fact-supplier.is-pending {
   color: var(--liner-ink-soft);
   font-weight: 400;
+}
+
+.yuanse-fact-row.owner-self .yuanse-fact-supplier:not(.is-pending) {
+  color: var(--liner-ink);
+}
+
+.yuanse-fact-row.owner-external .yuanse-fact-supplier {
+  color: var(--liner-amber);
 }
 
 .yuanse-fact-select,
