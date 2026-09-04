@@ -18,7 +18,7 @@ export const STATUS_DETAILS: Record<
   todo: { label: "编曲中", tone: "todo" },
   in_progress: { label: "编曲确认 / 修改", tone: "progress" },
   in_review: { label: "混音母带", tone: "review" },
-  blocked: { label: "录音中（乐器 / 人声）", tone: "blocked" },
+  blocked: { label: "录音中", tone: "blocked" },
   done: { label: "已完成", tone: "done" },
   canceled: { label: "暂停", tone: "canceled" },
 };

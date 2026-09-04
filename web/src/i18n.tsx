@@ -28,7 +28,7 @@ const STATUS_LABELS: Record<TaskboardLanguage, Record<TaskStatus, string>> = {
     todo: "编曲中",
     in_progress: "编曲确认 / 修改",
     in_review: "混音母带",
-    blocked: "录音中（乐器 / 人声）",
+    blocked: "录音中",
     done: "已完成",
     canceled: "暂停",
   },
